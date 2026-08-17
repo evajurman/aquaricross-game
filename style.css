@@ -1,0 +1,15 @@
+@font-face {
+  font-family: "LuckiestGuy";
+  src: url("fonts/LuckiestGuy-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  margin: 0px;
+}
+
+canvas {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges; /* Firefox fallback */
+}
