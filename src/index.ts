@@ -15,10 +15,6 @@ window.gameStateBoard = {
   crosses: [],
   solution: [],
   aquariums: [],
-  nonogramHintsRows: [],
-  nonogramHintsCols: [],
-  aquariumHintsRows: [],
-  aquariumHintsCols: [],
 };
 window.gameStateMenu = {
   selection: "Play",

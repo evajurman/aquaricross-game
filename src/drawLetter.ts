@@ -21,13 +21,13 @@ export function drawLetter({
 }) {
   ctx.font = `${fontSize}px ${fontFamily}`;
   if (bobble) {
-    let currentX = pos.x;
+    let currentX = pos.x + ctx.measureText(letter).width;
     let frame = getFrame();
-    for (let char = 0; char < letter.length; char++) {
+    for (let char = letter.length - 1; char >= 0; char--) {
       const letterWidth = ctx.measureText(letter[char]).width;
-      const centerX = currentX - letterWidth / 4;
+      const centerX = currentX;
       ctx.save();
-      ctx.translate(centerX + letterWidth - 2, pos.y + 0);
+      ctx.translate(centerX - letterWidth / 2, pos.y + 0);
 
       const angle =
         Math.cos(Math.sin(((frame + char * 8) / 60) * (Math.PI / 4))) - 0.75;
@@ -39,7 +39,7 @@ export function drawLetter({
         ctx.fillText(letter[char], -letterWidth / 2, 0);
       }
       ctx.restore();
-      currentX += letterWidth;
+      currentX -= letterWidth;
     }
   } else {
     if (withStroke) {

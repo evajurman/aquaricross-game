@@ -16,7 +16,7 @@ export function getFrame(): number {
 let delay = 0;
 export function delayAction(
   callback: (state: Window & typeof globalThis) => void,
-  delayLength = 5,
+  delayLength = 8,
 ) {
   if (delay === 0 || !(delay + delayLength > window.frameNumber)) {
     callback(window);
@@ -42,4 +42,21 @@ export function removeTuple<T>(list: T[], item: T) {
     }
     return true;
   });
+}
+
+export function getHHMMSSDifference(date1: Date, date2: Date) {
+  // Get the absolute difference in milliseconds
+  const diffInMs = Math.abs(date2.getTime() - date1.getTime());
+
+  // Convert milliseconds into total seconds
+  const totalSeconds = Math.floor(diffInMs / 1000);
+
+  // Calculate minutes and seconds
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  // Format to HH:MM:SS using String.prototype.padStart()
+  const pad = (num: number) => String(num).padStart(2, "0");
+
+  return `${pad(minutes)}:${pad(seconds)}`;
 }

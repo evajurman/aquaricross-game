@@ -14,16 +14,13 @@ type GameStateMenu = {
 };
 
 type GameStateBoard = {
+  startTime: Date;
   selection: [number, number];
   mode: "Nonogram" | "Aquarium";
   fills: [number, number][];
   crosses: [number, number][];
   solution: [number, number][];
   aquariums: [number, number][][];
-  nonogramHintsRows: number[][];
-  nonogramHintsCols: number[][];
-  aquariumHintsRows: number[][];
-  aquariumHintsCols: number[][];
 };
 
 type GameInput = {

@@ -8,8 +8,26 @@ import {
 
 let shouldClearSquares = false;
 let shouldClearCrosses = false;
+let builtBoard = false;
+
+export function buildBoard() {
+  for (let i = 0; i < 10; i++) {
+    for (let j = 0; j < 10; j++) {
+      if (Math.random() >= 0.5) {
+        window.gameStateBoard.solution.push([i, j]);
+      }
+    }
+  }
+}
 
 export function updateBoard() {
+  if (!builtBoard && window.gameState.screen === "Board") {
+    buildBoard();
+    console.log(window.gameStateBoard.solution);
+    builtBoard = true;
+    window.gameStateBoard.startTime = new Date();
+  }
+
   if (window.input.p1.buttonShiftBoard) {
     delayAction((state) => {
       state.gameStateBoard.mode =

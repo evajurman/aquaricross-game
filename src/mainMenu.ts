@@ -10,8 +10,8 @@ export function drawMainMenu(ctx: CTX) {
   ctx.lineWidth = 5;
   drawLetter({
     ctx,
-    letter: "AQUARICROSS",
-    pos: { x: 10, y: 42 },
+    letter: "Aquaricross",
+    pos: { x: 16, y: 42 },
     fontSize: 34,
     withStroke: true,
     bobble: true,
