@@ -9,12 +9,13 @@ window.gameState = {
   screen: "Board",
 };
 window.gameStateBoard = {
-  mode: "Nonogram",
+  mode: "Aquarium",
   selection: [0, 0],
   fills: [],
   crosses: [],
   solution: [],
-  aquariums: [],
+  tanks: [],
+  startTime: new Date(),
 };
 window.gameStateMenu = {
   selection: "Play",

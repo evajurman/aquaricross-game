@@ -20,7 +20,7 @@ type GameStateBoard = {
   fills: [number, number][];
   crosses: [number, number][];
   solution: [number, number][];
-  aquariums: [number, number][][];
+  tanks: [number, number][][];
 };
 
 type GameInput = {

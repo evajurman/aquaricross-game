@@ -27,7 +27,7 @@
     return window.frameNumber;
   }
   var delay = 0;
-  function delayAction(callback, delayLength = 8) {
+  function delayAction(callback, delayLength = 10) {
     if (delay === 0 || !(delay + delayLength > window.frameNumber)) {
       callback(window);
       delay = window.frameNumber;
@@ -53,10 +53,20 @@
   function getHHMMSSDifference(date1, date2) {
     const diffInMs = Math.abs(date2.getTime() - date1.getTime());
     const totalSeconds = Math.floor(diffInMs / 1e3);
-    const minutes = Math.floor(totalSeconds % 3600 / 60);
+    const overNintyNineMinutes = totalSeconds >= 5940;
+    const minutes = Math.floor(totalSeconds % 5940 / 60);
     const seconds = totalSeconds % 60;
     const pad = (num) => String(num).padStart(2, "0");
+    if (overNintyNineMinutes) {
+      return "99:99";
+    }
     return `${pad(minutes)}:${pad(seconds)}`;
+  }
+  function randomIndex(list) {
+    return Math.floor(Math.random() * list.length);
+  }
+  function randomItem(list) {
+    return list[Math.floor(Math.random() * list.length)];
   }
 
   // src/resizeCanvas.ts
@@ -205,52 +215,68 @@
         cellSquare * 10 + 1,
         cellSquare * 10 + 1
       );
-      ctx5.fillStyle = "black";
-      for (let i = 0; i < window.gameStateBoard.fills.length; i++) {
-        const square = window.gameStateBoard.fills[i];
-        ctx5.beginPath();
-        ctx5.roundRect(
-          boardOffsetX + square[0] * cellSquare + 2,
-          boardOffsetY + square[1] * cellSquare + 2,
-          cellSize - 4,
-          cellSize - 4,
-          2
-        );
-        ctx5.fill();
-        ctx5.closePath();
-      }
-      for (let i = 0; i < window.gameStateBoard.crosses.length; i++) {
-        const square = window.gameStateBoard.crosses[i];
-        ctx5.beginPath();
-        ctx5.lineWidth = 1.5;
-        ctx5.strokeStyle = "#663500";
-        ctx5.moveTo(
-          boardOffsetX + square[0] * cellSquare + 3,
-          boardOffsetY + square[1] * cellSquare + 3
-        );
-        ctx5.lineTo(
-          boardOffsetX + square[0] * cellSquare + 7,
-          boardOffsetY + square[1] * cellSquare + 7
-        );
-        ctx5.closePath();
-        ctx5.stroke();
-        ctx5.beginPath();
-        ctx5.moveTo(
-          boardOffsetX + square[0] * cellSquare + 7,
-          boardOffsetY + square[1] * cellSquare + 3
-        );
-        ctx5.lineTo(
-          boardOffsetX + square[0] * cellSquare + 3,
-          boardOffsetY + square[1] * cellSquare + 7
-        );
-        ctx5.closePath();
-        ctx5.stroke();
-        ctx5.strokeStyle = "black";
-      }
     }
     if (window.gameStateBoard.mode === "Aquarium") {
       drawAquariumHints(ctx5);
       ctx5.lineWidth = 1;
+      for (let tIndex = 0; tIndex < window.gameStateBoard.tanks.length; tIndex++) {
+        const tank = window.gameStateBoard.tanks[tIndex];
+        for (let squareIndex = 0; squareIndex < tank.length; squareIndex++) {
+          const [squareX, squareY] = tank[squareIndex];
+          if (!hasTuple(tank, [squareX - 1, squareY])) {
+            ctx5.beginPath();
+            ctx5.moveTo(
+              boardOffsetX + squareX * cellSquare,
+              boardOffsetY + squareY * cellSquare
+            );
+            ctx5.lineTo(
+              boardOffsetX + squareX * cellSquare,
+              boardOffsetY + (squareY + 1) * cellSquare
+            );
+            ctx5.closePath();
+            ctx5.stroke();
+          }
+          if (!hasTuple(tank, [squareX + 1, squareY])) {
+            ctx5.beginPath();
+            ctx5.moveTo(
+              boardOffsetX + (squareX + 1) * cellSquare,
+              boardOffsetY + squareY * cellSquare
+            );
+            ctx5.lineTo(
+              boardOffsetX + (squareX + 1) * cellSquare,
+              boardOffsetY + (squareY + 1) * cellSquare
+            );
+            ctx5.closePath();
+            ctx5.stroke();
+          }
+          if (!hasTuple(tank, [squareX, squareY - 1])) {
+            ctx5.beginPath();
+            ctx5.moveTo(
+              boardOffsetX + squareX * cellSquare,
+              boardOffsetY + squareY * cellSquare
+            );
+            ctx5.lineTo(
+              boardOffsetX + (squareX + 1) * cellSquare,
+              boardOffsetY + squareY * cellSquare
+            );
+            ctx5.closePath();
+            ctx5.stroke();
+          }
+          if (!hasTuple(tank, [squareX, squareY + 1])) {
+            ctx5.beginPath();
+            ctx5.moveTo(
+              boardOffsetX + squareX * cellSquare,
+              boardOffsetY + (squareY + 1) * cellSquare
+            );
+            ctx5.lineTo(
+              boardOffsetX + (squareX + 1) * cellSquare,
+              boardOffsetY + (squareY + 1) * cellSquare
+            );
+            ctx5.closePath();
+            ctx5.stroke();
+          }
+        }
+      }
     }
     ctx5.lineWidth = 2;
     const [cursorX, cursorY] = window.gameStateBoard.selection;
@@ -271,6 +297,54 @@
         },
         fontSize: 10
       });
+    }
+    drawFills(ctx5);
+    drawCrosses(ctx5);
+  }
+  function drawFills(ctx5) {
+    ctx5.fillStyle = "black";
+    for (let i = 0; i < window.gameStateBoard.fills.length; i++) {
+      const square = window.gameStateBoard.fills[i];
+      ctx5.beginPath();
+      ctx5.roundRect(
+        boardOffsetX + square[0] * cellSquare + 2,
+        boardOffsetY + square[1] * cellSquare + 2,
+        cellSize - 4,
+        cellSize - 4,
+        2
+      );
+      ctx5.fill();
+      ctx5.closePath();
+    }
+  }
+  function drawCrosses(ctx5) {
+    for (let i = 0; i < window.gameStateBoard.crosses.length; i++) {
+      const square = window.gameStateBoard.crosses[i];
+      ctx5.beginPath();
+      ctx5.lineWidth = 1.5;
+      ctx5.strokeStyle = "#663500";
+      ctx5.moveTo(
+        boardOffsetX + square[0] * cellSquare + 3,
+        boardOffsetY + square[1] * cellSquare + 3
+      );
+      ctx5.lineTo(
+        boardOffsetX + square[0] * cellSquare + 7,
+        boardOffsetY + square[1] * cellSquare + 7
+      );
+      ctx5.closePath();
+      ctx5.stroke();
+      ctx5.beginPath();
+      ctx5.moveTo(
+        boardOffsetX + square[0] * cellSquare + 7,
+        boardOffsetY + square[1] * cellSquare + 3
+      );
+      ctx5.lineTo(
+        boardOffsetX + square[0] * cellSquare + 3,
+        boardOffsetY + square[1] * cellSquare + 7
+      );
+      ctx5.closePath();
+      ctx5.stroke();
+      ctx5.strokeStyle = "black";
     }
   }
   function drawAquariumHints(ctx5) {
@@ -323,7 +397,7 @@
         ctx: ctx5,
         letter: `${clueCount}`,
         pos: {
-          x: boardOffsetX - cellSquare + 2,
+          x: boardOffsetX - cellSquare + (clueCount === 10 ? -3 : 2),
           y: boardOffsetY + i * cellSquare + 8
         },
         fontSize: 10
@@ -359,70 +433,63 @@
     );
     ctx5.fillStyle = "black";
     for (let i = 0; i < 10; i++) {
-      const clueArray = window.gameStateBoard.solution.reduce(
-        (acc, sqr, index, array) => {
-          const continued = index > 0 ? array[index - 1][0] === i && array[index - 1][1] === sqr[1] - 1 : false;
-          if (sqr[0] === i && continued) {
-            return {
-              clues: [
-                ...acc.clues.slice(0, acc.clues.length - 1),
-                acc.clues[acc.clues.length - 1] + 1
-              ]
-            };
+      let clueArray = { clues: [] };
+      let continued = false;
+      for (let j = 0; j < 10; j++) {
+        if (hasTuple(window.gameStateBoard.solution, [i, j])) {
+          if (!continued) {
+            clueArray.clues.push(1);
           }
-          if (sqr[0] === i && !continued) {
-            return {
-              clues: [...acc.clues, 1]
-            };
+          if (continued) {
+            clueArray.clues[clueArray.clues.length - 1] = clueArray.clues[clueArray.clues.length - 1] + 1;
           }
-          return { ...acc };
-        },
-        { clues: [] }
-      );
+          continued = true;
+        } else {
+          continued = false;
+        }
+      }
       if (clueArray.clues.length === 0) {
         clueArray.clues = [0];
       }
       for (let j = 0; j < clueArray.clues.length; j++) {
         const isTen = `${clueArray.clues[clueArray.clues.length - 1 - j]}` === "10";
-        const fontSize = isTen ? 8 : 10;
         drawLetter({
           ctx: ctx5,
           letter: `${clueArray.clues[clueArray.clues.length - 1 - j]}`,
           pos: {
-            x: boardOffsetX + i * cellSquare + (isTen ? 1 : 3),
+            x: boardOffsetX + i * cellSquare + (isTen ? 0 : 3),
             y: boardOffsetY - j * (cellSquare / 1.2) - 3
           },
-          fontSize
+          fontSize: 10
         });
       }
     }
     for (let i = 0; i < 10; i++) {
-      const clueArray = window.gameStateBoard.solution.reduce(
-        (acc, sqr, index, array) => {
-          const continued = index > 0 ? hasTuple(array, [sqr[0] - 1, sqr[1]]) : false;
-          if (sqr[1] === i && continued) {
-            return {
-              clues: [
-                ...acc.clues.slice(0, acc.clues.length - 1),
-                acc.clues[acc.clues.length - 1] + 1
-              ]
-            };
+      let clueArray = { clues: [] };
+      let continued = false;
+      for (let j = 0; j < 10; j++) {
+        if (hasTuple(window.gameStateBoard.solution, [j, i])) {
+          if (!continued) {
+            clueArray.clues.push(1);
           }
-          if (sqr[1] === i && !continued) {
-            return {
-              clues: [...acc.clues, 1]
-            };
+          if (continued) {
+            clueArray.clues[clueArray.clues.length - 1] = clueArray.clues[clueArray.clues.length - 1] + 1;
           }
-          return { ...acc };
-        },
-        { clues: [] }
-      );
+          continued = true;
+        } else {
+          continued = false;
+        }
+      }
+      if (clueArray.clues.length === 0) {
+        clueArray.clues = [0];
+      }
       for (let j = 0; j < clueArray.clues.length; j++) {
+        const isTen = `${clueArray.clues[clueArray.clues.length - 1 - j]}` === "10";
         drawLetter({
           ctx: ctx5,
           letter: `${clueArray.clues[clueArray.clues.length - 1 - j]}`,
           pos: {
-            x: boardOffsetX - j * (cellSquare / 1.2) - 8,
+            x: boardOffsetX - j * (cellSquare / 1.2) - (isTen ? 14 : 9),
             y: boardOffsetY + i * cellSquare + 8
           },
           fontSize: 10
@@ -435,11 +502,78 @@
   var shouldClearSquares = false;
   var shouldClearCrosses = false;
   var builtBoard = false;
-  function buildBoard() {
+  function getNeighbors(available, point) {
+    const deltas = [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1]
+    ];
+    return deltas.map(([dx, dy]) => [point[0] + dx, point[1] + dy]).filter((p) => hasTuple(available, p));
+  }
+  function getRegionNeighbors(available, region) {
+    const seen = /* @__PURE__ */ new Set();
+    const result = [];
+    for (const cell of region) {
+      for (const n of getNeighbors(available, cell)) {
+        const key = `${n[0]},${n[1]}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          result.push(n);
+        }
+      }
+    }
+    return result;
+  }
+  function buildTanks() {
+    let availableTanks = [];
+    let tanks = [];
     for (let i = 0; i < 10; i++) {
       for (let j = 0; j < 10; j++) {
-        if (Math.random() >= 0.5) {
-          window.gameStateBoard.solution.push([i, j]);
+        availableTanks.push([i, j]);
+      }
+    }
+    for (let t = 0; t < 20; t++) {
+      const tankIndex = randomIndex(availableTanks);
+      const [tank] = availableTanks.splice(tankIndex, 1);
+      tanks.push([tank]);
+    }
+    while (availableTanks.length > 0) {
+      for (let i = 0; availableTanks.length > 0; i++) {
+        i = i % tanks.length;
+        const tank = tanks[i];
+        const neighbors = getRegionNeighbors(availableTanks, tank);
+        if (neighbors.length === 0) {
+          continue;
+        }
+        const neighborToAdd = randomItem(neighbors);
+        availableTanks = availableTanks.filter(
+          (k) => !(k[0] === neighborToAdd[0] && k[1] === neighborToAdd[1])
+        );
+        tank.push(neighborToAdd);
+        tanks[i] = tank;
+      }
+    }
+    window.gameStateBoard.tanks = tanks;
+  }
+  function buildBoard() {
+    buildTanks();
+    const tanks = window.gameStateBoard.tanks;
+    for (let tankIndex = 0; tankIndex < tanks.length; tankIndex++) {
+      const tank = tanks[tankIndex];
+      const [lowestWaterLevel, highestWaterLevel] = tank.reduce(
+        ([lwl, hwl], square) => {
+          return [Math.min(lwl, square[1]), Math.max(hwl, square[1])];
+        },
+        [Infinity, -1]
+      );
+      const waterLevel = Math.floor(
+        Math.random() * (highestWaterLevel - lowestWaterLevel + 2)
+      );
+      for (let sIndex = 0; sIndex < tank.length; sIndex++) {
+        const square = tank[sIndex];
+        if (square[1] >= waterLevel + lowestWaterLevel) {
+          window.gameStateBoard.solution.push(square);
         }
       }
     }
@@ -447,7 +581,6 @@
   function updateBoard() {
     if (!builtBoard && window.gameState.screen === "Board") {
       buildBoard();
-      console.log(window.gameStateBoard.solution);
       builtBoard = true;
       window.gameStateBoard.startTime = /* @__PURE__ */ new Date();
     }
@@ -656,12 +789,13 @@
     screen: "Board"
   };
   window.gameStateBoard = {
-    mode: "Nonogram",
+    mode: "Aquarium",
     selection: [0, 0],
     fills: [],
     crosses: [],
     solution: [],
-    aquariums: []
+    tanks: [],
+    startTime: /* @__PURE__ */ new Date()
   };
   window.gameStateMenu = {
     selection: "Play"

@@ -16,7 +16,7 @@ export function getFrame(): number {
 let delay = 0;
 export function delayAction(
   callback: (state: Window & typeof globalThis) => void,
-  delayLength = 8,
+  delayLength = 10,
 ) {
   if (delay === 0 || !(delay + delayLength > window.frameNumber)) {
     callback(window);
@@ -52,11 +52,28 @@ export function getHHMMSSDifference(date1: Date, date2: Date) {
   const totalSeconds = Math.floor(diffInMs / 1000);
 
   // Calculate minutes and seconds
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const overNintyNineMinutes = totalSeconds >= 5940;
+  const minutes = Math.floor((totalSeconds % 5940) / 60);
   const seconds = totalSeconds % 60;
 
   // Format to HH:MM:SS using String.prototype.padStart()
   const pad = (num: number) => String(num).padStart(2, "0");
 
+  if (overNintyNineMinutes) {
+    return "99:99";
+  }
+
   return `${pad(minutes)}:${pad(seconds)}`;
+}
+
+export function randomIndex<T>(list: T[]) {
+  return Math.floor(Math.random() * list.length);
+}
+
+export function randomItem<T>(list: T[]) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+export function last<T>(list: T[]) {
+  return list[list.length - 1];
 }
