@@ -185,35 +185,30 @@
     if (window.gameStateBoard.mode === "Nonogram") {
       drawNonogramHints(ctx5);
       ctx5.lineWidth = 1;
+      ctx5.strokeRect(boardOffsetX, boardOffsetY, cellSquare * 5, cellSquare * 5);
       ctx5.strokeRect(
-        boardOffsetX - 1,
-        boardOffsetY - 1,
-        cellSquare * 5 + 1,
-        cellSquare * 5 + 1
+        cellSquare * 5 + boardOffsetX,
+        boardOffsetY,
+        cellSquare * 5,
+        cellSquare * 5
       );
       ctx5.strokeRect(
-        cellSquare * 5 + boardOffsetX - 1,
-        boardOffsetY - 1,
-        cellSquare * 5 + 1,
-        cellSquare * 5 + 1
+        boardOffsetX,
+        cellSquare * 5 + boardOffsetY,
+        cellSquare * 5,
+        cellSquare * 5
       );
       ctx5.strokeRect(
-        boardOffsetX - 1,
-        cellSquare * 5 + boardOffsetY - 1,
-        cellSquare * 5 + 1,
-        cellSquare * 5 + 1
+        cellSquare * 5 + boardOffsetX,
+        cellSquare * 5 + boardOffsetY,
+        cellSquare * 5,
+        cellSquare * 5
       );
       ctx5.strokeRect(
-        cellSquare * 5 + boardOffsetX - 1,
-        cellSquare * 5 + boardOffsetY - 1,
-        cellSquare * 5 + 1,
-        cellSquare * 5 + 1
-      );
-      ctx5.strokeRect(
-        boardOffsetX - 1,
-        boardOffsetY - 1,
-        cellSquare * 10 + 1,
-        cellSquare * 10 + 1
+        boardOffsetX,
+        boardOffsetY,
+        cellSquare * 10,
+        cellSquare * 10
       );
     }
     if (window.gameStateBoard.mode === "Aquarium") {
@@ -278,13 +273,14 @@
         }
       }
     }
-    ctx5.lineWidth = 2;
+    ctx5.lineWidth = 1;
+    ctx5.strokeStyle = window.gameStateBoard.mode === "Nonogram" ? "blue" : "red";
     const [cursorX, cursorY] = window.gameStateBoard.selection;
     ctx5.strokeRect(
-      boardOffsetX + cursorX * cellSquare,
-      boardOffsetY + cursorY * cellSquare,
-      cellSize,
-      cellSize
+      boardOffsetX + cursorX * cellSquare + 1,
+      boardOffsetY + cursorY * cellSquare + 1,
+      cellSize - 2,
+      cellSize - 2
     );
     const time = getHHMMSSDifference(/* @__PURE__ */ new Date(), window.gameStateBoard.startTime);
     for (let i = 0; i < time.length; i++) {
@@ -302,15 +298,15 @@
     drawCrosses(ctx5);
   }
   function drawFills(ctx5) {
-    ctx5.fillStyle = "black";
+    ctx5.fillStyle = window.gameStateBoard.mode === "Nonogram" ? "black" : "#4d56ff";
     for (let i = 0; i < window.gameStateBoard.fills.length; i++) {
       const square = window.gameStateBoard.fills[i];
       ctx5.beginPath();
       ctx5.roundRect(
-        boardOffsetX + square[0] * cellSquare + 2,
-        boardOffsetY + square[1] * cellSquare + 2,
-        cellSize - 4,
-        cellSize - 4,
+        boardOffsetX + square[0] * cellSquare + 1,
+        boardOffsetY + square[1] * cellSquare + 1,
+        cellSize - 2,
+        cellSize - 2,
         2
       );
       ctx5.fill();
@@ -379,14 +375,15 @@
       const clueCount = window.gameStateBoard.solution.filter(
         (sqr) => sqr[0] === i
       ).length;
+      const isTen = clueCount === 10;
       drawLetter({
         ctx: ctx5,
         letter: `${clueCount}`,
         pos: {
-          x: boardOffsetX + i * cellSquare + 2,
+          x: boardOffsetX + i * cellSquare + (isTen ? 0 : 3),
           y: boardOffsetY - 3
         },
-        fontSize: clueCount === 10 ? 8 : 10
+        fontSize: isTen ? 8 : 10
       });
     }
     for (let i = 0; i < 10; i++) {
@@ -460,7 +457,7 @@
             x: boardOffsetX + i * cellSquare + (isTen ? 0 : 3),
             y: boardOffsetY - j * (cellSquare / 1.2) - 3
           },
-          fontSize: 10
+          fontSize: isTen ? 8 : 10
         });
       }
     }
@@ -499,9 +496,8 @@
   }
 
   // src/boardLogic.ts
-  var shouldClearSquares = false;
-  var shouldClearCrosses = false;
   var builtBoard = false;
+  var paintMode = null;
   function getNeighbors(available, point) {
     const deltas = [
       [1, 0],
@@ -587,7 +583,7 @@
     if (window.input.p1.buttonShiftBoard) {
       delayAction((state) => {
         state.gameStateBoard.mode = state.gameStateBoard.mode === "Nonogram" ? "Aquarium" : "Nonogram";
-      }, 10);
+      });
     }
     if (window.input.p1.buttonRight && window.input.p1.buttonUp) {
       delayAction((state) => {
@@ -669,36 +665,57 @@
         );
       });
     }
-    if (!window.input.p1.buttonFillSquare) {
-      shouldClearSquares = false;
+    let justPressedFilledButton = window.input.p1.buttonFillSquare && !window.input.p1Previous.buttonFillSquare;
+    if (justPressedFilledButton && paintMode === null) {
+      paintMode = "erase";
+    } else if (justPressedFilledButton) {
+      if (hasTuple(window.gameStateBoard.fills, window.gameStateBoard.selection)) {
+        paintMode = "erase";
+      } else {
+        paintMode = "fill";
+      }
     }
     if (window.input.p1.buttonFillSquare) {
-      shouldClearSquares = hasTuple(window.gameStateBoard.fills, window.gameStateBoard.selection) && window.input.p1.buttonFillSquare !== window.input.p1Previous.buttonFillSquare || shouldClearSquares && window.input.p1.buttonFillSquare === window.input.p1Previous.buttonFillSquare;
-      if (shouldClearSquares) {
+      if (paintMode === "erase") {
         window.gameStateBoard.fills = removeTuple(
           window.gameStateBoard.fills,
           window.gameStateBoard.selection
         );
-      } else {
+      }
+      if (paintMode === "fill") {
         window.gameStateBoard.fills.push([...window.gameStateBoard.selection]);
+        if (hasTuple(window.gameStateBoard.crosses, window.gameStateBoard.selection)) {
+          window.gameStateBoard.crosses = removeTuple(
+            window.gameStateBoard.crosses,
+            window.gameStateBoard.selection
+          );
+        }
       }
       window.gameStateBoard.fills = uniqueTuples(window.gameStateBoard.fills);
     }
-    if (!window.input.p1.buttonCrossSquare) {
-      shouldClearCrosses = false;
+    let justPressedCrossButton = window.input.p1.buttonCrossSquare && !window.input.p1Previous.buttonCrossSquare;
+    if (justPressedCrossButton) {
+      if (hasTuple(window.gameStateBoard.crosses, window.gameStateBoard.selection)) {
+        paintMode = "erase";
+      } else {
+        paintMode = "cross";
+      }
     }
     if (window.input.p1.buttonCrossSquare) {
-      shouldClearCrosses = hasTuple(
-        window.gameStateBoard.crosses,
-        window.gameStateBoard.selection
-      ) && window.input.p1.buttonCrossSquare !== window.input.p1Previous.buttonCrossSquare || shouldClearCrosses && window.input.p1.buttonCrossSquare === window.input.p1Previous.buttonCrossSquare;
-      if (shouldClearCrosses) {
+      if (paintMode === "erase") {
         window.gameStateBoard.crosses = removeTuple(
           window.gameStateBoard.crosses,
           window.gameStateBoard.selection
         );
-      } else {
+      }
+      if (paintMode === "cross") {
         window.gameStateBoard.crosses.push([...window.gameStateBoard.selection]);
+        if (hasTuple(window.gameStateBoard.fills, window.gameStateBoard.selection)) {
+          window.gameStateBoard.fills = removeTuple(
+            window.gameStateBoard.fills,
+            window.gameStateBoard.selection
+          );
+        }
       }
       window.gameStateBoard.crosses = uniqueTuples(window.gameStateBoard.crosses);
     }
@@ -786,10 +803,10 @@
   // src/index.ts
   var frameNumber = 0;
   window.gameState = {
-    screen: "Board"
+    screen: "Menu"
   };
   window.gameStateBoard = {
-    mode: "Aquarium",
+    mode: "Nonogram",
     selection: [0, 0],
     fills: [],
     crosses: [],
@@ -877,7 +894,6 @@
   document.addEventListener("keydown", (event) => {
     for (let inputKey of Object.keys(window.keySettings)) {
       if (window.keySettings[inputKey] === event.key) {
-        window.input.p1Previous[inputKey] = false;
         window.input.p1[inputKey] = true;
       }
     }
@@ -886,7 +902,6 @@
     for (let inputKey of Object.keys(window.keySettings)) {
       if (window.keySettings[inputKey] === event.key) {
         window.input.p1[inputKey] = false;
-        window.input.p1Previous[inputKey] = true;
       }
     }
   });

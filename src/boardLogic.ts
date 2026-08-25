@@ -1,16 +1,14 @@
 import {
   delayAction,
   hasTuple,
-  last,
   randomIndex,
   randomItem,
   removeTuple,
   uniqueTuples,
 } from "./utils";
 
-let shouldClearSquares = false;
-let shouldClearCrosses = false;
 let builtBoard = false;
+let paintMode: "fill" | "erase" | "cross" | null = null;
 
 function getNeighbors(
   available: [number, number][],
@@ -115,7 +113,7 @@ export function updateBoard() {
     delayAction((state) => {
       state.gameStateBoard.mode =
         state.gameStateBoard.mode === "Nonogram" ? "Aquarium" : "Nonogram";
-    }, 10);
+    });
   }
 
   // diagonal movements
@@ -201,56 +199,75 @@ export function updateBoard() {
     });
   }
 
-  if (!window.input.p1.buttonFillSquare) {
-    shouldClearSquares = false;
+  let justPressedFilledButton =
+    window.input.p1.buttonFillSquare &&
+    !window.input.p1Previous.buttonFillSquare;
+
+  if (justPressedFilledButton && paintMode === null) {
+    paintMode = "erase"; // do not fill in the moment you go into the next screen
+  } else if (justPressedFilledButton) {
+    if (
+      hasTuple(window.gameStateBoard.fills, window.gameStateBoard.selection)
+    ) {
+      paintMode = "erase";
+    } else {
+      paintMode = "fill";
+    }
   }
 
   if (window.input.p1.buttonFillSquare) {
-    // should remove squares
-    shouldClearSquares =
-      (hasTuple(window.gameStateBoard.fills, window.gameStateBoard.selection) &&
-        window.input.p1.buttonFillSquare !==
-          window.input.p1Previous.buttonFillSquare) ||
-      (shouldClearSquares &&
-        window.input.p1.buttonFillSquare ===
-          window.input.p1Previous.buttonFillSquare);
-
-    if (shouldClearSquares) {
+    if (paintMode === "erase") {
       window.gameStateBoard.fills = removeTuple(
         window.gameStateBoard.fills,
         window.gameStateBoard.selection,
       );
-    } else {
+    }
+    if (paintMode === "fill") {
       window.gameStateBoard.fills.push([...window.gameStateBoard.selection]);
+      if (
+        hasTuple(window.gameStateBoard.crosses, window.gameStateBoard.selection)
+      ) {
+        window.gameStateBoard.crosses = removeTuple(
+          window.gameStateBoard.crosses,
+          window.gameStateBoard.selection,
+        );
+      }
     }
 
     window.gameStateBoard.fills = uniqueTuples(window.gameStateBoard.fills);
   }
 
-  if (!window.input.p1.buttonCrossSquare) {
-    shouldClearCrosses = false;
+  let justPressedCrossButton =
+    window.input.p1.buttonCrossSquare &&
+    !window.input.p1Previous.buttonCrossSquare;
+
+  if (justPressedCrossButton) {
+    if (
+      hasTuple(window.gameStateBoard.crosses, window.gameStateBoard.selection)
+    ) {
+      paintMode = "erase";
+    } else {
+      paintMode = "cross";
+    }
   }
 
   if (window.input.p1.buttonCrossSquare) {
-    // should remove squares
-    shouldClearCrosses =
-      (hasTuple(
-        window.gameStateBoard.crosses,
-        window.gameStateBoard.selection,
-      ) &&
-        window.input.p1.buttonCrossSquare !==
-          window.input.p1Previous.buttonCrossSquare) ||
-      (shouldClearCrosses &&
-        window.input.p1.buttonCrossSquare ===
-          window.input.p1Previous.buttonCrossSquare);
-
-    if (shouldClearCrosses) {
+    if (paintMode === "erase") {
       window.gameStateBoard.crosses = removeTuple(
         window.gameStateBoard.crosses,
         window.gameStateBoard.selection,
       );
-    } else {
+    }
+    if (paintMode === "cross") {
       window.gameStateBoard.crosses.push([...window.gameStateBoard.selection]);
+      if (
+        hasTuple(window.gameStateBoard.fills, window.gameStateBoard.selection)
+      ) {
+        window.gameStateBoard.fills = removeTuple(
+          window.gameStateBoard.fills,
+          window.gameStateBoard.selection,
+        );
+      }
     }
 
     window.gameStateBoard.crosses = uniqueTuples(window.gameStateBoard.crosses);

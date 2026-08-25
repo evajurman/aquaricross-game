@@ -35,35 +35,30 @@ export function drawBoard(ctx: CTX) {
     ctx.lineWidth = 1;
 
     // if picross, do 5x5
+    ctx.strokeRect(boardOffsetX, boardOffsetY, cellSquare * 5, cellSquare * 5);
     ctx.strokeRect(
-      boardOffsetX - 1,
-      boardOffsetY - 1,
-      cellSquare * 5 + 1,
-      cellSquare * 5 + 1,
+      cellSquare * 5 + boardOffsetX,
+      boardOffsetY,
+      cellSquare * 5,
+      cellSquare * 5,
     );
     ctx.strokeRect(
-      cellSquare * 5 + boardOffsetX - 1,
-      boardOffsetY - 1,
-      cellSquare * 5 + 1,
-      cellSquare * 5 + 1,
+      boardOffsetX,
+      cellSquare * 5 + boardOffsetY,
+      cellSquare * 5,
+      cellSquare * 5,
     );
     ctx.strokeRect(
-      boardOffsetX - 1,
-      cellSquare * 5 + boardOffsetY - 1,
-      cellSquare * 5 + 1,
-      cellSquare * 5 + 1,
+      cellSquare * 5 + boardOffsetX,
+      cellSquare * 5 + boardOffsetY,
+      cellSquare * 5,
+      cellSquare * 5,
     );
     ctx.strokeRect(
-      cellSquare * 5 + boardOffsetX - 1,
-      cellSquare * 5 + boardOffsetY - 1,
-      cellSquare * 5 + 1,
-      cellSquare * 5 + 1,
-    );
-    ctx.strokeRect(
-      boardOffsetX - 1,
-      boardOffsetY - 1,
-      cellSquare * 10 + 1,
-      cellSquare * 10 + 1,
+      boardOffsetX,
+      boardOffsetY,
+      cellSquare * 10,
+      cellSquare * 10,
     );
   }
 
@@ -146,13 +141,14 @@ export function drawBoard(ctx: CTX) {
     }
   }
 
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = window.gameStateBoard.mode === "Nonogram" ? "blue" : "red";
   const [cursorX, cursorY] = window.gameStateBoard.selection;
   ctx.strokeRect(
-    boardOffsetX + cursorX * cellSquare,
-    boardOffsetY + cursorY * cellSquare,
-    cellSize,
-    cellSize,
+    boardOffsetX + cursorX * cellSquare + 1,
+    boardOffsetY + cursorY * cellSquare + 1,
+    cellSize - 2,
+    cellSize - 2,
   );
 
   const time = getHHMMSSDifference(new Date(), window.gameStateBoard.startTime);
@@ -173,16 +169,17 @@ export function drawBoard(ctx: CTX) {
 }
 
 export function drawFills(ctx: CTX) {
-  ctx.fillStyle = "black";
+  ctx.fillStyle =
+    window.gameStateBoard.mode === "Nonogram" ? "black" : "#4d56ff";
 
   for (let i = 0; i < window.gameStateBoard.fills.length; i++) {
     const square = window.gameStateBoard.fills[i];
     ctx.beginPath();
     ctx.roundRect(
-      boardOffsetX + square[0] * cellSquare + 2,
-      boardOffsetY + square[1] * cellSquare + 2,
-      cellSize - 4,
-      cellSize - 4,
+      boardOffsetX + square[0] * cellSquare + 1,
+      boardOffsetY + square[1] * cellSquare + 1,
+      cellSize - 2,
+      cellSize - 2,
       2,
     );
     ctx.fill();
@@ -257,14 +254,15 @@ export function drawAquariumHints(ctx: CTX) {
     const clueCount = window.gameStateBoard.solution.filter(
       (sqr) => sqr[0] === i,
     ).length;
+    const isTen = clueCount === 10;
     drawLetter({
       ctx,
       letter: `${clueCount}`,
       pos: {
-        x: boardOffsetX + i * cellSquare + 2,
+        x: boardOffsetX + i * cellSquare + (isTen ? 0 : 3),
         y: boardOffsetY - 3,
       },
-      fontSize: clueCount === 10 ? 8 : 10,
+      fontSize: isTen ? 8 : 10,
     });
   }
   for (let i = 0; i < 10; i++) {
@@ -347,7 +345,7 @@ export function drawNonogramHints(ctx: CTX) {
           x: boardOffsetX + i * cellSquare + (isTen ? 0 : 3),
           y: boardOffsetY - j * (cellSquare / 1.2) - 3,
         },
-        fontSize: 10,
+        fontSize: isTen ? 8 : 10,
       });
     }
   }

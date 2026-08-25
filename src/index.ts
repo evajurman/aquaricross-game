@@ -6,10 +6,10 @@ import { drawSprites } from "./sprites";
 let frameNumber = 0;
 
 window.gameState = {
-  screen: "Board",
+  screen: "Menu",
 };
 window.gameStateBoard = {
-  mode: "Aquarium",
+  mode: "Nonogram",
   selection: [0, 0],
   fills: [],
   crosses: [],
@@ -109,7 +109,6 @@ async function start() {
 document.addEventListener("keydown", (event) => {
   for (let inputKey of Object.keys(window.keySettings) as (keyof GameInput)[]) {
     if (window.keySettings[inputKey] === event.key) {
-      window.input.p1Previous[inputKey] = false;
       window.input.p1[inputKey] = true;
     }
   }
@@ -119,7 +118,6 @@ document.addEventListener("keyup", (event) => {
   for (let inputKey of Object.keys(window.keySettings) as (keyof GameInput)[]) {
     if (window.keySettings[inputKey] === event.key) {
       window.input.p1[inputKey] = false;
-      window.input.p1Previous[inputKey] = true;
     }
   }
 });
