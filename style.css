@@ -12,4 +12,5 @@ body {
 canvas {
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges; /* Firefox fallback */
+  cursor: none;
 }

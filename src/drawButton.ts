@@ -29,4 +29,10 @@ export function drawButton({
     fontSize,
     bobble: selected,
   });
+  return {
+    x: pos.x - 4,
+    y: pos.y - fontSize,
+    width: buttonWidth + 8,
+    height: fontSize + 6,
+  };
 }

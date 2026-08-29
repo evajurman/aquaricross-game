@@ -15,6 +15,7 @@ type GameStateMenu = {
 
 type GameStateBoard = {
   startTime: Date;
+  endTime: Date | undefined;
   selection: [number, number];
   mode: "Nonogram" | "Aquarium";
   fills: [number, number][];

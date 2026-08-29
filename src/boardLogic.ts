@@ -1,3 +1,5 @@
+import { boardOffsetX, boardOffsetY, cellOffset, cellSize } from "./board";
+import { mousePos } from "./mouse";
 import {
   delayAction,
   hasTuple,
@@ -198,6 +200,29 @@ export function updateBoard() {
       );
     });
   }
+  if (
+    mousePos.x > boardOffsetX &&
+    mousePos.x < boardOffsetX + (cellSize + cellOffset) * 10 &&
+    mousePos.y > boardOffsetY &&
+    mousePos.y < boardOffsetY + (cellSize + cellOffset) * 10
+  ) {
+    window.gameStateBoard.selection = [
+      Math.min(
+        Math.max(
+          0,
+          Math.floor((mousePos.x - boardOffsetX - 3) / (cellSize + cellOffset)),
+        ),
+        9,
+      ),
+      Math.min(
+        Math.max(
+          0,
+          Math.floor((mousePos.y - boardOffsetY - 1) / (cellSize + cellOffset)),
+        ),
+        9,
+      ),
+    ];
+  }
 
   let justPressedFilledButton =
     window.input.p1.buttonFillSquare &&
@@ -271,5 +296,13 @@ export function updateBoard() {
     }
 
     window.gameStateBoard.crosses = uniqueTuples(window.gameStateBoard.crosses);
+  }
+
+  const fills = window.gameStateBoard.fills;
+  const solution = window.gameStateBoard.solution;
+  if (!window.gameStateBoard.endTime && fills.length === solution.length) {
+    if (solution.every((s) => hasTuple(fills, s))) {
+      window.gameStateBoard.endTime = new Date();
+    }
   }
 }

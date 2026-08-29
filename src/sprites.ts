@@ -2,6 +2,7 @@ import { drawBoard } from "./board";
 import { updateBoard } from "./boardLogic";
 import { drawMainMenu } from "./mainMenu";
 import { updateMenu } from "./mainMenuLogic";
+import { drawMouse } from "./mouse";
 import { getCanvas, getCtx } from "./utils";
 
 const ctx = getCtx();
@@ -18,4 +19,6 @@ export function drawSprites(frame: number) {
     updateBoard();
     drawBoard(ctx);
   }
+
+  drawMouse(ctx);
 }

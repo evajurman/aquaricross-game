@@ -16,8 +16,8 @@
   // src/utils.ts
   function getCtx() {
     const canvas5 = document.getElementById("canvas");
-    const ctx5 = canvas5.getContext("2d");
-    return ctx5;
+    const ctx6 = canvas5.getContext("2d");
+    return ctx6;
   }
   function getCanvas() {
     const canvas5 = document.getElementById("canvas");
@@ -117,42 +117,58 @@
 
   // src/drawLetter.ts
   function drawLetter({
-    ctx: ctx5,
+    ctx: ctx6,
     letter,
     pos,
     fontFamily = "LuckiestGuy",
     fontSize,
     withStroke = false,
     noFill = false,
-    bobble = false
+    bobble = false,
+    vertical = false
   }) {
-    ctx5.font = `${fontSize}px ${fontFamily}`;
+    ctx6.font = `${fontSize}px ${fontFamily}`;
     if (bobble) {
-      let currentX = pos.x + ctx5.measureText(letter).width;
+      let currentX = pos.x + ctx6.measureText(letter).width;
       let frame = getFrame();
       for (let char = letter.length - 1; char >= 0; char--) {
-        const letterWidth = ctx5.measureText(letter[char]).width;
+        const letterWidth = vertical ? 0 : ctx6.measureText(letter[char]).width;
         const centerX = currentX;
-        ctx5.save();
-        ctx5.translate(centerX - letterWidth / 2, pos.y + 0);
+        ctx6.save();
+        ctx6.translate(
+          centerX - letterWidth / 2,
+          vertical ? fontSize * char * 0.55 + pos.y : pos.y + 0
+        );
         const angle = Math.cos(Math.sin((frame + char * 8) / 60 * (Math.PI / 4))) - 0.75;
-        ctx5.rotate(angle);
+        ctx6.rotate(angle);
         if (withStroke) {
-          ctx5.strokeText(letter[char], -letterWidth / 2, 0);
+          ctx6.strokeText(letter[char], -letterWidth / 2, 0);
         }
         if (!noFill) {
-          ctx5.fillText(letter[char], -letterWidth / 2, 0);
+          ctx6.fillText(letter[char], -letterWidth / 2, 0);
         }
-        ctx5.restore();
+        ctx6.restore();
         currentX -= letterWidth;
       }
     } else {
       if (withStroke) {
-        ctx5.strokeText(letter, pos.x, pos.y);
+        ctx6.strokeText(letter, pos.x, pos.y);
       }
       if (!noFill) {
-        ctx5.fillText(letter, pos.x, pos.y);
+        ctx6.fillText(letter, pos.x, pos.y);
       }
+    }
+  }
+
+  // src/hint.ts
+  function testFills(hints, fills) {
+    const result = hints.map((__, i) => {
+      return hints[i] === fills[i];
+    });
+    if (result.every(Boolean)) {
+      return result;
+    } else {
+      return hints.map(() => false);
     }
   }
 
@@ -162,19 +178,19 @@
   var cellSize = 10;
   var cellOffset = 1;
   var cellSquare = cellSize + cellOffset;
-  function drawBoard(ctx5) {
-    ctx5.fillStyle = "white";
-    ctx5.strokeStyle = "black";
-    ctx5.lineWidth = 0.2;
+  function drawBoard(ctx6) {
+    ctx6.fillStyle = "white";
+    ctx6.strokeStyle = "black";
+    ctx6.lineWidth = 0.2;
     for (let i = 0; i < 10; i++) {
       for (let j = 0; j < 10; j++) {
-        ctx5.fillRect(
+        ctx6.fillRect(
           i * cellSquare + boardOffsetX,
           j * cellSquare + boardOffsetY,
           cellSize,
           cellSize
         );
-        ctx5.strokeRect(
+        ctx6.strokeRect(
           i * cellSquare + boardOffsetX,
           j * cellSquare + boardOffsetY,
           cellSize,
@@ -183,28 +199,28 @@
       }
     }
     if (window.gameStateBoard.mode === "Nonogram") {
-      drawNonogramHints(ctx5);
-      ctx5.lineWidth = 1;
-      ctx5.strokeRect(boardOffsetX, boardOffsetY, cellSquare * 5, cellSquare * 5);
-      ctx5.strokeRect(
+      drawNonogramHints(ctx6);
+      ctx6.lineWidth = 1;
+      ctx6.strokeRect(boardOffsetX, boardOffsetY, cellSquare * 5, cellSquare * 5);
+      ctx6.strokeRect(
         cellSquare * 5 + boardOffsetX,
         boardOffsetY,
         cellSquare * 5,
         cellSquare * 5
       );
-      ctx5.strokeRect(
+      ctx6.strokeRect(
         boardOffsetX,
         cellSquare * 5 + boardOffsetY,
         cellSquare * 5,
         cellSquare * 5
       );
-      ctx5.strokeRect(
+      ctx6.strokeRect(
         cellSquare * 5 + boardOffsetX,
         cellSquare * 5 + boardOffsetY,
         cellSquare * 5,
         cellSquare * 5
       );
-      ctx5.strokeRect(
+      ctx6.strokeRect(
         boardOffsetX,
         boardOffsetY,
         cellSquare * 10,
@@ -212,80 +228,84 @@
       );
     }
     if (window.gameStateBoard.mode === "Aquarium") {
-      drawAquariumHints(ctx5);
-      ctx5.lineWidth = 1;
+      drawAquariumHints(ctx6);
+      ctx6.lineWidth = 1;
       for (let tIndex = 0; tIndex < window.gameStateBoard.tanks.length; tIndex++) {
         const tank = window.gameStateBoard.tanks[tIndex];
         for (let squareIndex = 0; squareIndex < tank.length; squareIndex++) {
           const [squareX, squareY] = tank[squareIndex];
           if (!hasTuple(tank, [squareX - 1, squareY])) {
-            ctx5.beginPath();
-            ctx5.moveTo(
+            ctx6.beginPath();
+            ctx6.moveTo(
               boardOffsetX + squareX * cellSquare,
               boardOffsetY + squareY * cellSquare
             );
-            ctx5.lineTo(
+            ctx6.lineTo(
               boardOffsetX + squareX * cellSquare,
               boardOffsetY + (squareY + 1) * cellSquare
             );
-            ctx5.closePath();
-            ctx5.stroke();
+            ctx6.closePath();
+            ctx6.stroke();
           }
           if (!hasTuple(tank, [squareX + 1, squareY])) {
-            ctx5.beginPath();
-            ctx5.moveTo(
+            ctx6.beginPath();
+            ctx6.moveTo(
               boardOffsetX + (squareX + 1) * cellSquare,
               boardOffsetY + squareY * cellSquare
             );
-            ctx5.lineTo(
+            ctx6.lineTo(
               boardOffsetX + (squareX + 1) * cellSquare,
               boardOffsetY + (squareY + 1) * cellSquare
             );
-            ctx5.closePath();
-            ctx5.stroke();
+            ctx6.closePath();
+            ctx6.stroke();
           }
           if (!hasTuple(tank, [squareX, squareY - 1])) {
-            ctx5.beginPath();
-            ctx5.moveTo(
+            ctx6.beginPath();
+            ctx6.moveTo(
               boardOffsetX + squareX * cellSquare,
               boardOffsetY + squareY * cellSquare
             );
-            ctx5.lineTo(
+            ctx6.lineTo(
               boardOffsetX + (squareX + 1) * cellSquare,
               boardOffsetY + squareY * cellSquare
             );
-            ctx5.closePath();
-            ctx5.stroke();
+            ctx6.closePath();
+            ctx6.stroke();
           }
           if (!hasTuple(tank, [squareX, squareY + 1])) {
-            ctx5.beginPath();
-            ctx5.moveTo(
+            ctx6.beginPath();
+            ctx6.moveTo(
               boardOffsetX + squareX * cellSquare,
               boardOffsetY + (squareY + 1) * cellSquare
             );
-            ctx5.lineTo(
+            ctx6.lineTo(
               boardOffsetX + (squareX + 1) * cellSquare,
               boardOffsetY + (squareY + 1) * cellSquare
             );
-            ctx5.closePath();
-            ctx5.stroke();
+            ctx6.closePath();
+            ctx6.stroke();
           }
         }
       }
     }
-    ctx5.lineWidth = 1;
-    ctx5.strokeStyle = window.gameStateBoard.mode === "Nonogram" ? "blue" : "red";
+    ctx6.lineWidth = 1;
+    ctx6.strokeStyle = window.gameStateBoard.mode === "Nonogram" ? "blue" : "red";
     const [cursorX, cursorY] = window.gameStateBoard.selection;
-    ctx5.strokeRect(
+    ctx6.strokeRect(
       boardOffsetX + cursorX * cellSquare + 1,
       boardOffsetY + cursorY * cellSquare + 1,
       cellSize - 2,
       cellSize - 2
     );
-    const time = getHHMMSSDifference(/* @__PURE__ */ new Date(), window.gameStateBoard.startTime);
+    ctx6.fillStyle = "black";
+    const time = getHHMMSSDifference(
+      window.gameStateBoard.endTime || /* @__PURE__ */ new Date(),
+      window.gameStateBoard.startTime
+    );
     for (let i = 0; i < time.length; i++) {
       drawLetter({
-        ctx: ctx5,
+        ctx: ctx6,
         letter: `${time[i]}`,
         pos: {
           x: boardOffsetX - 42 + i * 8,
@@ -294,90 +314,128 @@
         fontSize: 10
       });
     }
-    drawFills(ctx5);
-    drawCrosses(ctx5);
+    drawFills(ctx6);
+    drawCrosses(ctx6);
+    ctx6.strokeStyle = "black";
+    ctx6.fillStyle = "white";
+    ctx6.lineWidth = 4;
+    if (window.gameStateBoard.mode === "Aquarium") {
+      drawLetter({
+        ctx: ctx6,
+        letter: "AQUARIUM",
+        pos: { x: 52, y: 32 },
+        fontSize: 32,
+        withStroke: true,
+        bobble: true,
+        vertical: true
+      });
+    }
+    if (window.gameStateBoard.mode === "Nonogram") {
+      drawLetter({
+        ctx: ctx6,
+        letter: "NONOGRAM",
+        pos: { x: 36, y: 32 },
+        fontSize: 32,
+        withStroke: true,
+        bobble: true,
+        vertical: true
+      });
+    }
   }
-  function drawFills(ctx5) {
-    ctx5.fillStyle = window.gameStateBoard.mode === "Nonogram" ? "black" : "#4d56ff";
+  function drawFills(ctx6) {
+    ctx6.fillStyle = window.gameStateBoard.mode === "Nonogram" ? "black" : "#4d56ff";
     for (let i = 0; i < window.gameStateBoard.fills.length; i++) {
       const square = window.gameStateBoard.fills[i];
-      ctx5.beginPath();
-      ctx5.roundRect(
+      ctx6.beginPath();
+      ctx6.roundRect(
         boardOffsetX + square[0] * cellSquare + 1,
         boardOffsetY + square[1] * cellSquare + 1,
         cellSize - 2,
         cellSize - 2,
         2
       );
-      ctx5.fill();
-      ctx5.closePath();
+      ctx6.fill();
+      ctx6.closePath();
     }
   }
-  function drawCrosses(ctx5) {
+  function drawCrosses(ctx6) {
     for (let i = 0; i < window.gameStateBoard.crosses.length; i++) {
       const square = window.gameStateBoard.crosses[i];
-      ctx5.beginPath();
-      ctx5.lineWidth = 1.5;
-      ctx5.strokeStyle = "#663500";
-      ctx5.moveTo(
+      ctx6.beginPath();
+      ctx6.lineWidth = 1.5;
+      ctx6.strokeStyle = "#663500";
+      ctx6.moveTo(
         boardOffsetX + square[0] * cellSquare + 3,
         boardOffsetY + square[1] * cellSquare + 3
       );
-      ctx5.lineTo(
+      ctx6.lineTo(
         boardOffsetX + square[0] * cellSquare + 7,
         boardOffsetY + square[1] * cellSquare + 7
       );
-      ctx5.closePath();
-      ctx5.stroke();
-      ctx5.beginPath();
-      ctx5.moveTo(
+      ctx6.closePath();
+      ctx6.stroke();
+      ctx6.beginPath();
+      ctx6.moveTo(
         boardOffsetX + square[0] * cellSquare + 7,
         boardOffsetY + square[1] * cellSquare + 3
       );
-      ctx5.lineTo(
+      ctx6.lineTo(
         boardOffsetX + square[0] * cellSquare + 3,
         boardOffsetY + square[1] * cellSquare + 7
       );
-      ctx5.closePath();
-      ctx5.stroke();
-      ctx5.strokeStyle = "black";
+      ctx6.closePath();
+      ctx6.stroke();
+      ctx6.strokeStyle = "black";
     }
   }
-  function drawAquariumHints(ctx5) {
-    ctx5.lineWidth = 2;
-    ctx5.fillStyle = "white";
-    ctx5.fillRect(
+  function drawAquariumHints(ctx6) {
+    ctx6.lineWidth = 2;
+    ctx6.fillStyle = "white";
+    ctx6.fillRect(
       boardOffsetX - 2,
       boardOffsetY - 3 * cellSquare / 2,
       cellSquare * 10 + 3,
       cellSquare * 3 / 2
     );
-    ctx5.strokeRect(
+    ctx6.strokeRect(
       boardOffsetX - 1,
       boardOffsetY - 3 * cellSquare / 2 - 0.5,
       cellSquare * 10 + 1,
       cellSquare * 3 / 2 - 0.5
     );
-    ctx5.fillRect(
+    ctx6.fillRect(
       boardOffsetX - 4 * cellSquare / 2,
       boardOffsetY - 2,
       cellSquare * 4 / 2,
       cellSquare * 10 + 3
     );
-    ctx5.strokeRect(
+    ctx6.strokeRect(
       boardOffsetX - 4 * cellSquare / 2 - 1,
       boardOffsetY - 1,
       cellSquare * 4 / 2,
       cellSquare * 10 + 1
     );
-    ctx5.fillStyle = "black";
+    ctx6.fillStyle = "black";
     for (let i = 0; i < 10; i++) {
       const clueCount = window.gameStateBoard.solution.filter(
         (sqr) => sqr[0] === i
       ).length;
       const isTen = clueCount === 10;
+      const fillCount = window.gameStateBoard.fills.filter(
+        (sqr) => sqr[0] === i
+      ).length;
+      const crossCount = window.gameStateBoard.crosses.filter(
+        (sqr) => sqr[0] === i
+      ).length;
+      if (fillCount === clueCount) {
+        ctx6.fillStyle = "gray";
+      } else if (fillCount > clueCount || crossCount > 10 - clueCount) {
+        ctx6.fillStyle = "red";
+      } else {
+        ctx6.fillStyle = "black";
+      }
       drawLetter({
-        ctx: ctx5,
+        ctx: ctx6,
         letter: `${clueCount}`,
         pos: {
           x: boardOffsetX + i * cellSquare + (isTen ? 0 : 3),
@@ -390,8 +448,21 @@
       const clueCount = window.gameStateBoard.solution.filter(
         (sqr) => sqr[1] === i
       ).length;
+      const fillCount = window.gameStateBoard.fills.filter(
+        (sqr) => sqr[1] === i
+      ).length;
+      const crossCount = window.gameStateBoard.crosses.filter(
+        (sqr) => sqr[1] === i
+      ).length;
+      if (fillCount === clueCount) {
+        ctx6.fillStyle = "gray";
+      } else if (fillCount > clueCount || crossCount > 10 - clueCount) {
+        ctx6.fillStyle = "red";
+      } else {
+        ctx6.fillStyle = "black";
+      }
       drawLetter({
-        ctx: ctx5,
+        ctx: ctx6,
         letter: `${clueCount}`,
         pos: {
           x: boardOffsetX - cellSquare + (clueCount === 10 ? -3 : 2),
@@ -401,34 +472,47 @@
       });
     }
   }
-  function drawNonogramHints(ctx5) {
-    ctx5.lineWidth = 2;
-    ctx5.fillStyle = "white";
-    ctx5.fillRect(
+  function drawNonogramHints(ctx6) {
+    ctx6.lineWidth = 2;
+    ctx6.fillStyle = "white";
+    ctx6.fillRect(
       boardOffsetX - 2,
       boardOffsetY - 6 * cellSquare / 2 - 8,
       cellSquare * 10 + 3,
       cellSquare * 6 / 2 + 8
     );
-    ctx5.strokeRect(
+    ctx6.strokeRect(
       boardOffsetX - 1,
       boardOffsetY - 6 * cellSquare / 2 - 9,
       cellSquare * 10 + 1,
       cellSquare * 6 / 2 + 8
     );
-    ctx5.fillRect(
+    ctx6.fillRect(
       boardOffsetX - 8 * cellSquare / 2,
       boardOffsetY - 2,
       cellSquare * 8 / 2,
       cellSquare * 10 + 3
     );
-    ctx5.strokeRect(
+    ctx6.strokeRect(
       boardOffsetX - 8 * cellSquare / 2 - 1,
       boardOffsetY - 1,
       cellSquare * 8 / 2,
       cellSquare * 10 + 1
     );
-    ctx5.fillStyle = "black";
+    ctx6.fillStyle = "black";
+    let currentColFills = [];
+    for (let i = 0; i < 10; i++) {
+      currentColFills[i] = "";
+      for (let j = 0; j < 10; j++) {
+        if (hasTuple(window.gameStateBoard.fills, [i, j])) {
+          currentColFills[i] = currentColFills[i].concat("f");
+        } else if (hasTuple(window.gameStateBoard.crosses, [i, j])) {
+          currentColFills[i] = currentColFills[i].concat("x");
+        } else {
+          currentColFills[i] = currentColFills[i].concat("e");
+        }
+      }
+    }
     for (let i = 0; i < 10; i++) {
       let clueArray = { clues: [] };
       let continued = false;
@@ -448,11 +532,22 @@
       if (clueArray.clues.length === 0) {
         clueArray.clues = [0];
       }
+      let fillStringMatchArray = (currentColFills[i].match(/f+/g) || []).map(
+        (m) => m.length
+      );
+      fillStringMatchArray = fillStringMatchArray.length === 0 ? [0] : fillStringMatchArray;
+      const isFillMatch = testFills(clueArray.clues, fillStringMatchArray);
       for (let j = 0; j < clueArray.clues.length; j++) {
-        const isTen = `${clueArray.clues[clueArray.clues.length - 1 - j]}` === "10";
+        const clue = clueArray.clues[clueArray.clues.length - 1 - j];
+        const isTen = clue === 10;
+        if (isFillMatch[j]) {
+          ctx6.fillStyle = "gray";
+        } else {
+          ctx6.fillStyle = "black";
+        }
         drawLetter({
-          ctx: ctx5,
-          letter: `${clueArray.clues[clueArray.clues.length - 1 - j]}`,
+          ctx: ctx6,
+          letter: `${clue}`,
           pos: {
             x: boardOffsetX + i * cellSquare + (isTen ? 0 : 3),
             y: boardOffsetY - j * (cellSquare / 1.2) - 3
@@ -461,30 +556,51 @@
         });
       }
     }
+    let currentRowFills = [];
     for (let i = 0; i < 10; i++) {
-      let clueArray = { clues: [] };
-      let continued = false;
+      currentRowFills[i] = "";
       for (let j = 0; j < 10; j++) {
-        if (hasTuple(window.gameStateBoard.solution, [j, i])) {
-          if (!continued) {
-            clueArray.clues.push(1);
-          }
-          if (continued) {
-            clueArray.clues[clueArray.clues.length - 1] = clueArray.clues[clueArray.clues.length - 1] + 1;
-          }
-          continued = true;
+        if (hasTuple(window.gameStateBoard.fills, [j, i])) {
+          currentRowFills[i] = "f".concat(currentRowFills[i]);
+        } else if (hasTuple(window.gameStateBoard.crosses, [j, i])) {
+          currentRowFills[i] = "x".concat(currentRowFills[i]);
         } else {
-          continued = false;
+          currentRowFills[i] = "e".concat(currentRowFills[i]);
         }
       }
-      if (clueArray.clues.length === 0) {
-        clueArray.clues = [0];
+    }
+    let currentRowSolution = [];
+    for (let i = 0; i < 10; i++) {
+      currentRowSolution[i] = "";
+      for (let j = 0; j < 10; j++) {
+        if (hasTuple(window.gameStateBoard.solution, [j, i])) {
+          currentRowSolution[i] = "s".concat(currentRowSolution[i]);
+        } else {
+          currentRowSolution[i] = "e".concat(currentRowSolution[i]);
+        }
       }
-      for (let j = 0; j < clueArray.clues.length; j++) {
-        const isTen = `${clueArray.clues[clueArray.clues.length - 1 - j]}` === "10";
+    }
+    for (let i = 0; i < 10; i++) {
+      let hintStringMatchArray = (currentRowSolution[i].match(/s+/g) || []).map(
+        (m) => m.length
+      );
+      let fillStringMatchArray = (currentRowFills[i].match(/f+/g) || []).map(
+        (m) => m.length
+      );
+      hintStringMatchArray = hintStringMatchArray.length === 0 ? [0] : hintStringMatchArray;
+      fillStringMatchArray = fillStringMatchArray.length === 0 ? [0] : fillStringMatchArray;
+      const isFillMatch = testFills(hintStringMatchArray, fillStringMatchArray);
+      for (let j = 0; j < hintStringMatchArray.length; j++) {
+        const clue = hintStringMatchArray[j];
+        const isTen = clue === 10;
+        if (isFillMatch[j]) {
+          ctx6.fillStyle = "gray";
+        } else {
+          ctx6.fillStyle = "black";
+        }
         drawLetter({
-          ctx: ctx5,
-          letter: `${clueArray.clues[clueArray.clues.length - 1 - j]}`,
+          ctx: ctx6,
+          letter: `${clue}`,
           pos: {
             x: boardOffsetX - j * (cellSquare / 1.2) - (isTen ? 14 : 9),
             y: boardOffsetY + i * cellSquare + 8
@@ -494,6 +610,55 @@
       }
     }
   }
+
+  // src/mouse.ts
+  var mousePos = { x: 0, y: 0 };
+  var canvas3 = getCanvas();
+  var ctx3 = getCtx();
+  function drawMouse(ctx6) {
+    ctx6.strokeStyle = "orange";
+    ctx6.fillStyle = "yellow";
+    ctx6.lineWidth = 3;
+    ctx6.beginPath();
+    ctx6.moveTo(mousePos.x, mousePos.y);
+    ctx6.lineTo(mousePos.x + 7, mousePos.y + 6);
+    ctx6.lineTo(mousePos.x + 3, mousePos.y + 7);
+    ctx6.lineTo(mousePos.x, mousePos.y + 10);
+    ctx6.lineTo(mousePos.x, mousePos.y);
+    ctx6.closePath();
+    ctx6.stroke();
+    ctx6.fill();
+  }
+  document.addEventListener("mousemove", (event) => {
+    const rect = canvas3.getBoundingClientRect();
+    const cssX = event.clientX - rect.left;
+    const cssY = event.clientY - rect.top;
+    mousePos.x = cssX * (canvas3.width / rect.width);
+    mousePos.y = cssY * (canvas3.height / rect.height);
+  });
+  document.addEventListener("mousedown", (event) => {
+    event.preventDefault();
+    window.input.p1.buttonSelect = true;
+    if (window.gameState.screen === "Board" && event.button === 0) {
+      window.input.p1.buttonFillSquare = true;
+    }
+    if (window.gameState.screen === "Board" && event.button === 2) {
+      window.input.p1.buttonCrossSquare = true;
+    }
+  });
+  document.addEventListener("mouseup", (event) => {
+    event.preventDefault();
+    window.input.p1.buttonSelect = false;
+    if (window.gameState.screen === "Board" && event.button === 0) {
+      window.input.p1.buttonFillSquare = false;
+    }
+    if (window.gameState.screen === "Board" && event.button === 2) {
+      window.input.p1.buttonCrossSquare = false;
+    }
+  });
+  document.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+  });
 
   // src/boardLogic.ts
   var builtBoard = false;
@@ -665,6 +830,24 @@
         );
       });
     }
+    if (mousePos.x > boardOffsetX && mousePos.x < boardOffsetX + (cellSize + cellOffset) * 10 && mousePos.y > boardOffsetY && mousePos.y < boardOffsetY + (cellSize + cellOffset) * 10) {
+      window.gameStateBoard.selection = [
+        Math.min(
+          Math.max(
+            0,
+            Math.floor((mousePos.x - boardOffsetX - 3) / (cellSize + cellOffset))
+          ),
+          9
+        ),
+        Math.min(
+          Math.max(
+            0,
+            Math.floor((mousePos.y - boardOffsetY - 1) / (cellSize + cellOffset))
+          ),
+          9
+        )
+      ];
+    }
     let justPressedFilledButton = window.input.p1.buttonFillSquare && !window.input.p1Previous.buttonFillSquare;
     if (justPressedFilledButton && paintMode === null) {
       paintMode = "erase";
@@ -719,54 +902,71 @@
       }
       window.gameStateBoard.crosses = uniqueTuples(window.gameStateBoard.crosses);
     }
+    const fills = window.gameStateBoard.fills;
+    const solution = window.gameStateBoard.solution;
+    if (!window.gameStateBoard.endTime && fills.length === solution.length) {
+      if (solution.every((s) => hasTuple(fills, s))) {
+        window.gameStateBoard.endTime = /* @__PURE__ */ new Date();
+      }
+    }
   }
 
   // src/drawButton.ts
-  var ctx3 = getCtx();
+  var ctx4 = getCtx();
   function drawButton({
     selected,
     text,
     pos,
     fontSize = 20
   }) {
-    ctx3.beginPath();
-    ctx3.fillStyle = selected ? "black" : "white";
-    const buttonWidth = ctx3.measureText(text).width;
-    ctx3.roundRect(pos.x - 4, pos.y - fontSize, buttonWidth + 8, fontSize + 6, 10);
-    ctx3.fill();
-    ctx3.closePath();
-    ctx3.fillStyle = selected ? "white" : "black";
+    ctx4.beginPath();
+    ctx4.fillStyle = selected ? "black" : "white";
+    const buttonWidth = ctx4.measureText(text).width;
+    ctx4.roundRect(pos.x - 4, pos.y - fontSize, buttonWidth + 8, fontSize + 6, 10);
+    ctx4.fill();
+    ctx4.closePath();
+    ctx4.fillStyle = selected ? "white" : "black";
     drawLetter({
-      ctx: ctx3,
+      ctx: ctx4,
       letter: text,
       pos,
       fontSize,
       bobble: selected
     });
+    return {
+      x: pos.x - 4,
+      y: pos.y - fontSize,
+      width: buttonWidth + 8,
+      height: fontSize + 6
+    };
   }
 
   // src/mainMenu.ts
-  var canvas3 = getCanvas();
-  function drawMainMenu(ctx5) {
-    ctx5.fillStyle = "white";
-    ctx5.strokeStyle = "black";
-    ctx5.lineWidth = 5;
+  var mainMenuButtons = {
+    play: { x: 0, y: 0, width: 0, height: 0 },
+    settings: { x: 0, y: 0, width: 0, height: 0 }
+  };
+  function drawMainMenu(ctx6) {
+    ctx6.fillStyle = "white";
+    ctx6.strokeStyle = "black";
+    ctx6.lineWidth = 5;
+    const letter = "Aquaricross!!".slice(0, getFrame() * getFrame() / 900);
     drawLetter({
-      ctx: ctx5,
-      letter: "Aquaricross",
-      pos: { x: 16, y: 42 },
-      fontSize: 34,
+      ctx: ctx6,
+      letter,
+      pos: { x: 14, y: 42 },
+      fontSize: 32,
       withStroke: true,
       bobble: true
     });
-    ctx5.fillStyle = "black";
-    ctx5.strokeStyle = "";
-    drawButton({
+    ctx6.fillStyle = "black";
+    ctx6.strokeStyle = "";
+    mainMenuButtons.play = drawButton({
       selected: window.gameStateMenu.selection === "Play",
       text: "Play",
       pos: { x: 60, y: 100 }
     });
-    drawButton({
+    mainMenuButtons.settings = drawButton({
       selected: window.gameStateMenu.selection === "Settings",
       text: "Settings",
       pos: { x: 60, y: 128 }
@@ -784,20 +984,27 @@
     if (window.gameStateMenu.selection === "Play" && window.input.p1.buttonSelect) {
       window.gameState.screen = "Board";
     }
+    if (mousePos.x > mainMenuButtons.play.x && mousePos.x < mainMenuButtons.play.x + mainMenuButtons.play.width && mousePos.y > mainMenuButtons.play.y && mousePos.y < mainMenuButtons.play.y + mainMenuButtons.play.height) {
+      window.gameStateMenu.selection = "Play";
+    }
+    if (mousePos.x > mainMenuButtons.settings.x && mousePos.x < mainMenuButtons.settings.x + mainMenuButtons.settings.width && mousePos.y > mainMenuButtons.settings.y && mousePos.y < mainMenuButtons.settings.y + mainMenuButtons.settings.height) {
+      window.gameStateMenu.selection = "Settings";
+    }
   }
 
   // src/sprites.ts
-  var ctx4 = getCtx();
+  var ctx5 = getCtx();
   var canvas4 = getCanvas();
   function drawSprites(frame) {
     if (window.gameState.screen === "Menu") {
       updateMenu();
-      drawMainMenu(ctx4);
+      drawMainMenu(ctx5);
     }
     if (window.gameState.screen === "Board") {
       updateBoard();
-      drawBoard(ctx4);
+      drawBoard(ctx5);
     }
+    drawMouse(ctx5);
   }
 
   // src/index.ts
@@ -812,7 +1019,8 @@
     crosses: [],
     solution: [],
     tanks: [],
-    startTime: /* @__PURE__ */ new Date()
+    startTime: /* @__PURE__ */ new Date(),
+    endTime: void 0
   };
   window.gameStateMenu = {
     selection: "Play"
@@ -886,8 +1094,6 @@
   }
   async function start() {
     await loadFonts();
-    const canvas5 = document.getElementById("canvas");
-    const ctx5 = canvas5.getContext("2d");
     resizeCanvas();
     window.requestAnimationFrame(tick);
   }

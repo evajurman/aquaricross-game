@@ -16,6 +16,7 @@ window.gameStateBoard = {
   solution: [],
   tanks: [],
   startTime: new Date(),
+  endTime: undefined,
 };
 window.gameStateMenu = {
   selection: "Play",
@@ -97,9 +98,6 @@ function tick(): void {
 
 async function start() {
   await loadFonts();
-
-  const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-  const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
   resizeCanvas();
 

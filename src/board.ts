@@ -1,10 +1,11 @@
 import { drawLetter } from "./drawLetter";
+import { testFills } from "./hint";
 import { getHHMMSSDifference, hasTuple } from "./utils";
 
-const boardOffsetX = 86;
-const boardOffsetY = 46;
-const cellSize = 10;
-const cellOffset = 1;
+export const boardOffsetX = 86;
+export const boardOffsetY = 46;
+export const cellSize = 10;
+export const cellOffset = 1;
 const cellSquare = cellSize + cellOffset;
 
 export function drawBoard(ctx: CTX) {
@@ -151,7 +152,11 @@ export function drawBoard(ctx: CTX) {
     cellSize - 2,
   );
 
-  const time = getHHMMSSDifference(new Date(), window.gameStateBoard.startTime);
+  ctx.fillStyle = "black";
+  const time = getHHMMSSDifference(
+    window.gameStateBoard.endTime || new Date(),
+    window.gameStateBoard.startTime,
+  );
   for (let i = 0; i < time.length; i++) {
     drawLetter({
       ctx,
@@ -166,6 +171,32 @@ export function drawBoard(ctx: CTX) {
 
   drawFills(ctx);
   drawCrosses(ctx);
+
+  ctx.strokeStyle = "black";
+  ctx.fillStyle = "white";
+  ctx.lineWidth = 4;
+  if (window.gameStateBoard.mode === "Aquarium") {
+    drawLetter({
+      ctx,
+      letter: "AQUARIUM",
+      pos: { x: 52, y: 32 },
+      fontSize: 32,
+      withStroke: true,
+      bobble: true,
+      vertical: true,
+    });
+  }
+  if (window.gameStateBoard.mode === "Nonogram") {
+    drawLetter({
+      ctx,
+      letter: "NONOGRAM",
+      pos: { x: 36, y: 32 },
+      fontSize: 32,
+      withStroke: true,
+      bobble: true,
+      vertical: true,
+    });
+  }
 }
 
 export function drawFills(ctx: CTX) {
@@ -255,6 +286,19 @@ export function drawAquariumHints(ctx: CTX) {
       (sqr) => sqr[0] === i,
     ).length;
     const isTen = clueCount === 10;
+    const fillCount = window.gameStateBoard.fills.filter(
+      (sqr) => sqr[0] === i,
+    ).length;
+    const crossCount = window.gameStateBoard.crosses.filter(
+      (sqr) => sqr[0] === i,
+    ).length;
+    if (fillCount === clueCount) {
+      ctx.fillStyle = "gray";
+    } else if (fillCount > clueCount || crossCount > 10 - clueCount) {
+      ctx.fillStyle = "red";
+    } else {
+      ctx.fillStyle = "black";
+    }
     drawLetter({
       ctx,
       letter: `${clueCount}`,
@@ -269,6 +313,19 @@ export function drawAquariumHints(ctx: CTX) {
     const clueCount = window.gameStateBoard.solution.filter(
       (sqr) => sqr[1] === i,
     ).length;
+    const fillCount = window.gameStateBoard.fills.filter(
+      (sqr) => sqr[1] === i,
+    ).length;
+    const crossCount = window.gameStateBoard.crosses.filter(
+      (sqr) => sqr[1] === i,
+    ).length;
+    if (fillCount === clueCount) {
+      ctx.fillStyle = "gray";
+    } else if (fillCount > clueCount || crossCount > 10 - clueCount) {
+      ctx.fillStyle = "red";
+    } else {
+      ctx.fillStyle = "black";
+    }
     drawLetter({
       ctx,
       letter: `${clueCount}`,
@@ -313,6 +370,21 @@ export function drawNonogramHints(ctx: CTX) {
 
   // draw hints for cols
   ctx.fillStyle = "black";
+
+  let currentColFills: string[] = [];
+  for (let i = 0; i < 10; i++) {
+    currentColFills[i] = "";
+    for (let j = 0; j < 10; j++) {
+      if (hasTuple(window.gameStateBoard.fills, [i, j])) {
+        currentColFills[i] = currentColFills[i].concat("f");
+      } else if (hasTuple(window.gameStateBoard.crosses, [i, j])) {
+        currentColFills[i] = currentColFills[i].concat("x");
+      } else {
+        currentColFills[i] = currentColFills[i].concat("e");
+      }
+    }
+  }
+
   for (let i = 0; i < 10; i++) {
     let clueArray: { clues: number[] } = { clues: [] };
     let continued = false;
@@ -335,12 +407,24 @@ export function drawNonogramHints(ctx: CTX) {
       clueArray.clues = [0];
     }
 
+    let fillStringMatchArray = (currentColFills[i].match(/f+/g) || []).map(
+      (m) => m.length,
+    );
+    fillStringMatchArray =
+      fillStringMatchArray.length === 0 ? [0] : fillStringMatchArray;
+    const isFillMatch = testFills(clueArray.clues, fillStringMatchArray);
     for (let j = 0; j < clueArray.clues.length; j++) {
-      const isTen =
-        `${clueArray.clues[clueArray.clues.length - 1 - j]}` === "10";
+      const clue = clueArray.clues[clueArray.clues.length - 1 - j];
+      const isTen = clue === 10;
+
+      if (isFillMatch[j]) {
+        ctx.fillStyle = "gray";
+      } else {
+        ctx.fillStyle = "black";
+      }
       drawLetter({
         ctx,
-        letter: `${clueArray.clues[clueArray.clues.length - 1 - j]}`,
+        letter: `${clue}`,
         pos: {
           x: boardOffsetX + i * cellSquare + (isTen ? 0 : 3),
           y: boardOffsetY - j * (cellSquare / 1.2) - 3,
@@ -349,34 +433,56 @@ export function drawNonogramHints(ctx: CTX) {
       });
     }
   }
+
+  let currentRowFills: string[] = [];
   for (let i = 0; i < 10; i++) {
-    let clueArray: { clues: number[] } = { clues: [] };
-    let continued = false;
+    currentRowFills[i] = "";
     for (let j = 0; j < 10; j++) {
-      if (hasTuple(window.gameStateBoard.solution, [j, i])) {
-        if (!continued) {
-          clueArray.clues.push(1);
-        }
-        if (continued) {
-          clueArray.clues[clueArray.clues.length - 1] =
-            clueArray.clues[clueArray.clues.length - 1] + 1;
-        }
-        continued = true;
+      if (hasTuple(window.gameStateBoard.fills, [j, i])) {
+        currentRowFills[i] = "f".concat(currentRowFills[i]);
+      } else if (hasTuple(window.gameStateBoard.crosses, [j, i])) {
+        currentRowFills[i] = "x".concat(currentRowFills[i]);
       } else {
-        continued = false;
+        currentRowFills[i] = "e".concat(currentRowFills[i]);
       }
     }
+  }
 
-    if (clueArray.clues.length === 0) {
-      clueArray.clues = [0];
+  let currentRowSolution: string[] = [];
+  for (let i = 0; i < 10; i++) {
+    currentRowSolution[i] = "";
+    for (let j = 0; j < 10; j++) {
+      if (hasTuple(window.gameStateBoard.solution, [j, i])) {
+        currentRowSolution[i] = "s".concat(currentRowSolution[i]);
+      } else {
+        currentRowSolution[i] = "e".concat(currentRowSolution[i]);
+      }
     }
+  }
 
-    for (let j = 0; j < clueArray.clues.length; j++) {
-      const isTen =
-        `${clueArray.clues[clueArray.clues.length - 1 - j]}` === "10";
+  for (let i = 0; i < 10; i++) {
+    let hintStringMatchArray = (currentRowSolution[i].match(/s+/g) || []).map(
+      (m) => m.length,
+    );
+    let fillStringMatchArray = (currentRowFills[i].match(/f+/g) || []).map(
+      (m) => m.length,
+    );
+    hintStringMatchArray =
+      hintStringMatchArray.length === 0 ? [0] : hintStringMatchArray;
+    fillStringMatchArray =
+      fillStringMatchArray.length === 0 ? [0] : fillStringMatchArray;
+    const isFillMatch = testFills(hintStringMatchArray, fillStringMatchArray);
+    for (let j = 0; j < hintStringMatchArray.length; j++) {
+      const clue = hintStringMatchArray[j];
+      const isTen = clue === 10;
+      if (isFillMatch[j]) {
+        ctx.fillStyle = "gray";
+      } else {
+        ctx.fillStyle = "black";
+      }
       drawLetter({
         ctx,
-        letter: `${clueArray.clues[clueArray.clues.length - 1 - j]}`,
+        letter: `${clue}`,
         pos: {
           x: boardOffsetX - j * (cellSquare / 1.2) - (isTen ? 14 : 9),
           y: boardOffsetY + i * cellSquare + 8,
