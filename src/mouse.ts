@@ -16,7 +16,7 @@ export function drawMouse(ctx: CTX) {
   ctx.stroke();
   ctx.fill();
 }
-document.addEventListener("mousemove", (event) => {
+document.addEventListener("pointermove", (event) => {
   const rect = canvas.getBoundingClientRect();
 
   // position within the displayed canvas, in CSS pixels
@@ -28,7 +28,7 @@ document.addEventListener("mousemove", (event) => {
   mousePos.y = cssY * (canvas.height / rect.height);
 });
 
-document.addEventListener("mousedown", (event) => {
+document.addEventListener("pointerdown", (event) => {
   event.preventDefault();
   if (window.gameState.screen === "Board" && event.button === 0) {
     window.input.p1.buttonFillSquare = true;
@@ -38,7 +38,7 @@ document.addEventListener("mousedown", (event) => {
   }
   window.input.p1.buttonSelect = true;
 });
-document.addEventListener("mouseup", (event) => {
+document.addEventListener("pointerup", (event) => {
   event.preventDefault();
   if (window.gameState.screen === "Board" && event.button === 0) {
     window.input.p1.buttonFillSquare = false;

@@ -641,14 +641,14 @@
     ctx5.stroke();
     ctx5.fill();
   }
-  document.addEventListener("mousemove", (event) => {
+  document.addEventListener("pointermove", (event) => {
     const rect = canvas3.getBoundingClientRect();
     const cssX = event.clientX - rect.left;
     const cssY = event.clientY - rect.top;
     mousePos.x = cssX * (canvas3.width / rect.width);
     mousePos.y = cssY * (canvas3.height / rect.height);
   });
-  document.addEventListener("mousedown", (event) => {
+  document.addEventListener("pointerdown", (event) => {
     event.preventDefault();
     if (window.gameState.screen === "Board" && event.button === 0) {
       window.input.p1.buttonFillSquare = true;
@@ -658,7 +658,7 @@
     }
     window.input.p1.buttonSelect = true;
   });
-  document.addEventListener("mouseup", (event) => {
+  document.addEventListener("pointerup", (event) => {
     event.preventDefault();
     if (window.gameState.screen === "Board" && event.button === 0) {
       window.input.p1.buttonFillSquare = false;
