@@ -625,7 +625,7 @@
   }
 
   // src/mouse.ts
-  var mousePos = { x: 0, y: 0 };
+  var mousePos = { x: 200, y: 200 };
   var canvas3 = getCanvas();
   function drawMouse(ctx5) {
     ctx5.strokeStyle = "orange";
@@ -760,7 +760,7 @@
     if (window.input.p1.buttonShiftBoard) {
       delayAction((state) => {
         state.gameStateBoard.mode = state.gameStateBoard.mode === "Nonogram" ? "Aquarium" : "Nonogram";
-      });
+      }, 24);
     }
     if (window.input.p1.buttonRight && window.input.p1.buttonUp) {
       delayAction((state) => {
@@ -992,6 +992,9 @@
 
   // src/mainMenuLogic.ts
   function updateMenu() {
+    if (window.gameStateMenu.selection === null && (window.input.p1.buttonDown || window.input.p1.buttonUp)) {
+      window.gameStateMenu.selection = "Play";
+    }
     if (window.gameStateMenu.selection === "Play" && window.input.p1.buttonDown) {
       window.gameStateMenu.selection = "Settings";
     }
@@ -1001,11 +1004,105 @@
     if (window.gameStateMenu.selection === "Play" && window.input.p1.buttonSelect) {
       window.gameState.screen = "Board";
     }
+    if (window.gameStateMenu.selection === "Settings" && window.input.p1.buttonSelect) {
+      window.gameState.screen = "Settings";
+    }
     if (mousePos.x > mainMenuButtons.play.x && mousePos.x < mainMenuButtons.play.x + mainMenuButtons.play.width && mousePos.y > mainMenuButtons.play.y && mousePos.y < mainMenuButtons.play.y + mainMenuButtons.play.height) {
       window.gameStateMenu.selection = "Play";
     }
     if (mousePos.x > mainMenuButtons.settings.x && mousePos.x < mainMenuButtons.settings.x + mainMenuButtons.settings.width && mousePos.y > mainMenuButtons.settings.y && mousePos.y < mainMenuButtons.settings.y + mainMenuButtons.settings.height) {
       window.gameStateMenu.selection = "Settings";
+    }
+  }
+
+  // src/settingsLogic.ts
+  var settingsSelection = null;
+  var returnFromSettings = 0;
+  function updateSettings() {
+    delayAction(() => {
+      if (window.input.p1.buttonUp) {
+        settingsSelection = ((settingsSelection || buttonsArray.length) - 1) % buttonsArray.length;
+      } else if (window.input.p1.buttonDown) {
+        settingsSelection = ((settingsSelection || 0) + 1) % buttonsArray.length;
+      }
+    });
+    if (window.input.p1.buttonBack) {
+      returnFromSettings += 1;
+    } else {
+      returnFromSettings = 0;
+    }
+    if (returnFromSettings >= 100) {
+      window.gameState.screen = "Menu";
+    }
+  }
+
+  // src/settings.ts
+  var buttons = {
+    Up: "buttonUp",
+    Down: "buttonDown",
+    Right: "buttonRight",
+    Left: "buttonLeft",
+    Select: "buttonSelect",
+    Back: "buttonBack",
+    "Fill Square": "buttonFillSquare",
+    "Cross Square": "buttonCrossSquare",
+    "Mode Switch": "buttonShiftBoard"
+  };
+  var buttonsArray = Object.keys(buttons);
+  function drawSettings(ctx5) {
+    ctx5.fillStyle = "black";
+    const fontSize = 12;
+    for (let i = 0; i < buttonsArray.length; i++) {
+      if (settingsSelection === i) {
+        ctx5.fillStyle = "white";
+      } else {
+        ctx5.fillStyle = "black";
+      }
+      drawLetter({
+        ctx: getCtx(),
+        letter: buttonsArray[i],
+        pos: { x: 20, y: 40 + (fontSize + 1) * i },
+        fontSize
+      });
+      let key = window.keySettings[buttons[buttonsArray[i]]];
+      key = key === " " ? "space" : key;
+      drawButton({
+        selected: false,
+        // @ts-ignore
+        text: key,
+        pos: { x: 120, y: 40 + (fontSize + 1) * i },
+        fontSize
+      });
+      drawLetter({
+        ctx: ctx5,
+        // @ts-ignore
+        letter: window.input.p1[buttons[buttonsArray[i]]],
+        pos: { x: 200, y: 40 + (fontSize + 1) * i },
+        fontSize
+      });
+      if (returnFromSettings > 0) {
+        const gradient = ctx5.createLinearGradient(2, 0, 35, 0);
+        gradient.addColorStop(0, "white");
+        gradient.addColorStop(returnFromSettings / 100, "white");
+        gradient.addColorStop((returnFromSettings + 1) / 100, "black");
+        gradient.addColorStop(1, "black");
+        ctx5.fillStyle = "orange";
+        ctx5.strokeStyle = gradient;
+        ctx5.beginPath();
+        ctx5.moveTo(6, 16);
+        ctx5.lineTo(15, 6);
+        ctx5.lineTo(15, 13);
+        ctx5.lineTo(22, 6);
+        ctx5.lineTo(35, 12);
+        ctx5.lineTo(32, 18);
+        ctx5.lineTo(23, 12);
+        ctx5.lineTo(15, 18);
+        ctx5.lineTo(15, 23);
+        ctx5.lineTo(6, 16);
+        ctx5.closePath();
+        ctx5.stroke();
+        ctx5.fill();
+      }
     }
   }
 
@@ -1020,6 +1117,10 @@
     if (window.gameState.screen === "Board") {
       updateBoard();
       drawBoard(ctx4);
+    }
+    if (window.gameState.screen === "Settings") {
+      updateSettings();
+      drawSettings(ctx4);
     }
     drawMouse(ctx4);
   }
@@ -1040,7 +1141,7 @@
     endTime: void 0
   };
   window.gameStateMenu = {
-    selection: "Play"
+    selection: null
   };
   window.input = {
     p1: {

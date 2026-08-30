@@ -20,7 +20,7 @@ window.gameStateBoard = {
   endTime: undefined,
 };
 window.gameStateMenu = {
-  selection: "Play",
+  selection: null,
 };
 window.input = {
   p1: {

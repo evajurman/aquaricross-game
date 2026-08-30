@@ -10,7 +10,7 @@ type GameState = {
 };
 
 type GameStateMenu = {
-  selection: "Play" | "Settings";
+  selection: "Play" | "Settings" | null;
 };
 
 type GameStateBoard = {

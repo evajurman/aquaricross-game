@@ -1,6 +1,6 @@
 import { getCanvas, getCtx } from "./utils";
 
-export const mousePos = { x: 0, y: 0 };
+export const mousePos = { x: 200, y: 200 };
 const canvas = getCanvas();
 export function drawMouse(ctx: CTX) {
   ctx.strokeStyle = "orange";

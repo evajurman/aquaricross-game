@@ -121,7 +121,7 @@ export function updateBoard() {
     delayAction((state) => {
       state.gameStateBoard.mode =
         state.gameStateBoard.mode === "Nonogram" ? "Aquarium" : "Nonogram";
-    });
+    }, 24);
   }
 
   // diagonal movements

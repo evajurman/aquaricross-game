@@ -2,6 +2,12 @@ import { mainMenuButtons } from "./mainMenu";
 import { mousePos } from "./mouse";
 
 export function updateMenu() {
+  if (
+    window.gameStateMenu.selection === null &&
+    (window.input.p1.buttonDown || window.input.p1.buttonUp)
+  ) {
+    window.gameStateMenu.selection = "Play";
+  }
   if (window.gameStateMenu.selection === "Play" && window.input.p1.buttonDown) {
     window.gameStateMenu.selection = "Settings";
   }
@@ -17,6 +23,13 @@ export function updateMenu() {
     window.input.p1.buttonSelect
   ) {
     window.gameState.screen = "Board";
+  }
+
+  if (
+    window.gameStateMenu.selection === "Settings" &&
+    window.input.p1.buttonSelect
+  ) {
+    window.gameState.screen = "Settings";
   }
 
   if (
