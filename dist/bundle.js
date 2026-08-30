@@ -172,6 +172,85 @@
     }
   }
 
+  // src/mouse.ts
+  var mousePos = { x: 200, y: 200 };
+  var canvas3 = getCanvas();
+  function updatePos(event) {
+    const rect = canvas3.getBoundingClientRect();
+    const cssX = event.clientX - rect.left;
+    const cssY = event.clientY - rect.top;
+    mousePos.x = cssX * (canvas3.width / rect.width);
+    mousePos.y = cssY * (canvas3.height / rect.height);
+  }
+  function drawMouse(ctx5) {
+    ctx5.strokeStyle = "orange";
+    ctx5.fillStyle = "yellow";
+    ctx5.lineWidth = 3;
+    ctx5.beginPath();
+    ctx5.moveTo(mousePos.x, mousePos.y);
+    ctx5.lineTo(mousePos.x + 7, mousePos.y + 6);
+    ctx5.lineTo(mousePos.x + 3, mousePos.y + 7);
+    ctx5.lineTo(mousePos.x, mousePos.y + 10);
+    ctx5.lineTo(mousePos.x, mousePos.y);
+    ctx5.closePath();
+    ctx5.stroke();
+    ctx5.fill();
+  }
+  var pointerMode = "fill";
+  document.addEventListener("pointermove", updatePos);
+  document.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    updatePos(event);
+    const mouseInBoardX = mousePos.x > boardOffsetX && mousePos.x < boardOffsetX + (cellSize + cellOffset) * 11;
+    const mouseInBoardY = mousePos.y > boardOffsetY && mousePos.y < boardOffsetY + (cellSize + cellOffset) * 11;
+    const mouseInBoard = mouseInBoardX && mouseInBoardY;
+    if (window.gameState.screen === "Board" && event.button === 0 && mouseInBoard) {
+      if (pointerMode === "fill") {
+        window.input.p1.buttonFillSquare = true;
+      }
+      if (pointerMode === "cross") {
+        window.input.p1.buttonCrossSquare = true;
+      }
+    }
+    if (window.gameState.screen === "Board" && event.button === 2 && mouseInBoard) {
+      if (pointerMode === "fill") {
+        window.input.p1.buttonCrossSquare = true;
+      }
+      if (pointerMode === "cross") {
+        window.input.p1.buttonFillSquare = true;
+      }
+    }
+    const isInPointerModeSection = mousePos.x > 40 && mousePos.y > 9 && mousePos.x < 70 && mousePos.y < 31;
+    if (window.gameState.screen === "Board" && isInPointerModeSection) {
+      pointerMode = pointerMode === "fill" ? "cross" : "fill";
+    }
+    window.input.p1.buttonSelect = true;
+  });
+  document.addEventListener("pointerup", (event) => {
+    event.preventDefault();
+    updatePos(event);
+    if (window.gameState.screen === "Board" && event.button === 0) {
+      if (pointerMode === "fill") {
+        window.input.p1.buttonFillSquare = false;
+      }
+      if (pointerMode === "cross") {
+        window.input.p1.buttonCrossSquare = false;
+      }
+    }
+    if (window.gameState.screen === "Board" && event.button === 2) {
+      if (pointerMode === "fill") {
+        window.input.p1.buttonCrossSquare = false;
+      }
+      if (pointerMode === "cross") {
+        window.input.p1.buttonFillSquare = false;
+      }
+    }
+    window.input.p1.buttonSelect = false;
+  });
+  document.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+  });
+
   // src/board.ts
   var boardOffsetX = 86;
   var boardOffsetY = 46;
@@ -323,6 +402,7 @@
         fontSize: 10
       });
     }
+    drawPointerMode(ctx5);
     drawFills(ctx5);
     drawCrosses(ctx5);
     ctx5.strokeStyle = "black";
@@ -349,6 +429,70 @@
         bobble: true,
         vertical: true
       });
+    }
+  }
+  function drawPointerMode(ctx5) {
+    if (pointerMode === "cross") {
+      ctx5.fillStyle = "white";
+      ctx5.strokeStyle = "black";
+      ctx5.lineWidth = 2;
+      ctx5.fillRect(52, 14, 14, 14);
+      ctx5.strokeRect(52, 14, 14, 14);
+      ctx5.fillStyle = "black";
+      ctx5.beginPath();
+      ctx5.roundRect(54, 16, 10, 10, 2);
+      ctx5.fill();
+      ctx5.fillStyle = "white";
+      ctx5.strokeStyle = "black";
+      ctx5.lineWidth = 2;
+      ctx5.fillRect(45, 10, 14, 14);
+      ctx5.strokeRect(45, 10, 14, 14);
+      ctx5.fillStyle = "black";
+      ctx5.beginPath();
+      ctx5.beginPath();
+      ctx5.lineWidth = 3;
+      ctx5.strokeStyle = "#663500";
+      ctx5.moveTo(48, 13);
+      ctx5.lineTo(56, 21);
+      ctx5.closePath();
+      ctx5.stroke();
+      ctx5.beginPath();
+      ctx5.moveTo(56, 13);
+      ctx5.lineTo(48, 21);
+      ctx5.closePath();
+      ctx5.stroke();
+      ctx5.fill();
+    }
+    if (pointerMode === "fill") {
+      ctx5.fillStyle = "white";
+      ctx5.strokeStyle = "black";
+      ctx5.lineWidth = 2;
+      ctx5.fillRect(45, 10, 14, 14);
+      ctx5.strokeRect(45, 10, 14, 14);
+      ctx5.fillStyle = "black";
+      ctx5.beginPath();
+      ctx5.beginPath();
+      ctx5.lineWidth = 3;
+      ctx5.strokeStyle = "#663500";
+      ctx5.moveTo(48, 13);
+      ctx5.lineTo(56, 21);
+      ctx5.closePath();
+      ctx5.stroke();
+      ctx5.beginPath();
+      ctx5.moveTo(56, 13);
+      ctx5.lineTo(48, 21);
+      ctx5.closePath();
+      ctx5.stroke();
+      ctx5.fill();
+      ctx5.fillStyle = "white";
+      ctx5.strokeStyle = "black";
+      ctx5.lineWidth = 2;
+      ctx5.fillRect(52, 14, 14, 14);
+      ctx5.strokeRect(52, 14, 14, 14);
+      ctx5.fillStyle = "black";
+      ctx5.beginPath();
+      ctx5.roundRect(54, 16, 10, 10, 2);
+      ctx5.fill();
     }
   }
   function drawFills(ctx5) {
@@ -623,54 +767,6 @@
       }
     }
   }
-
-  // src/mouse.ts
-  var mousePos = { x: 200, y: 200 };
-  var canvas3 = getCanvas();
-  function drawMouse(ctx5) {
-    ctx5.strokeStyle = "orange";
-    ctx5.fillStyle = "yellow";
-    ctx5.lineWidth = 3;
-    ctx5.beginPath();
-    ctx5.moveTo(mousePos.x, mousePos.y);
-    ctx5.lineTo(mousePos.x + 7, mousePos.y + 6);
-    ctx5.lineTo(mousePos.x + 3, mousePos.y + 7);
-    ctx5.lineTo(mousePos.x, mousePos.y + 10);
-    ctx5.lineTo(mousePos.x, mousePos.y);
-    ctx5.closePath();
-    ctx5.stroke();
-    ctx5.fill();
-  }
-  document.addEventListener("pointermove", (event) => {
-    const rect = canvas3.getBoundingClientRect();
-    const cssX = event.clientX - rect.left;
-    const cssY = event.clientY - rect.top;
-    mousePos.x = cssX * (canvas3.width / rect.width);
-    mousePos.y = cssY * (canvas3.height / rect.height);
-  });
-  document.addEventListener("pointerdown", (event) => {
-    event.preventDefault();
-    if (window.gameState.screen === "Board" && event.button === 0) {
-      window.input.p1.buttonFillSquare = true;
-    }
-    if (window.gameState.screen === "Board" && event.button === 2) {
-      window.input.p1.buttonCrossSquare = true;
-    }
-    window.input.p1.buttonSelect = true;
-  });
-  document.addEventListener("pointerup", (event) => {
-    event.preventDefault();
-    if (window.gameState.screen === "Board" && event.button === 0) {
-      window.input.p1.buttonFillSquare = false;
-    }
-    if (window.gameState.screen === "Board" && event.button === 2) {
-      window.input.p1.buttonCrossSquare = false;
-    }
-    window.input.p1.buttonSelect = false;
-  });
-  document.addEventListener("contextmenu", (event) => {
-    event.preventDefault();
-  });
 
   // src/boardLogic.ts
   var builtBoard = false;

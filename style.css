@@ -5,7 +5,8 @@
   font-style: normal;
 }
 
-html {
+html,
+body {
   background: #cf975e;
 }
 
@@ -14,10 +15,18 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  scroll-behavior: none;
+}
+
+img {
+  /* Prevent haptic touch previews */
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
 }
 
 canvas {
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges; /* Firefox fallback */
   cursor: none;
+  touch-action: none;
 }

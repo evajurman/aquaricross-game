@@ -1,5 +1,6 @@
 import { drawLetter } from "./drawLetter";
 import { testFills } from "./hint";
+import { pointerMode } from "./mouse";
 import { getHHMMSSDifference, hasTuple } from "./utils";
 
 export const boardOffsetX = 86;
@@ -181,6 +182,7 @@ export function drawBoard(ctx: CTX) {
     });
   }
 
+  drawPointerMode(ctx);
   drawFills(ctx);
   drawCrosses(ctx);
 
@@ -208,6 +210,81 @@ export function drawBoard(ctx: CTX) {
       bobble: true,
       vertical: true,
     });
+  }
+}
+
+export function drawPointerMode(ctx: CTX) {
+  if (pointerMode === "cross") {
+    // draw fill
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.fillRect(52, 14, 14, 14);
+    ctx.strokeRect(52, 14, 14, 14);
+
+    ctx.fillStyle = "black";
+    ctx.beginPath();
+    ctx.roundRect(54, 16, 10, 10, 2);
+    ctx.fill();
+
+    // draw cross
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.fillRect(45, 10, 14, 14);
+    ctx.strokeRect(45, 10, 14, 14);
+
+    ctx.fillStyle = "black";
+    ctx.beginPath();
+    ctx.beginPath();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#663500";
+    ctx.moveTo(48, 13);
+    ctx.lineTo(56, 21);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(56, 13);
+    ctx.lineTo(48, 21);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fill();
+  }
+  if (pointerMode === "fill") {
+    // draw cross
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.fillRect(45, 10, 14, 14);
+    ctx.strokeRect(45, 10, 14, 14);
+
+    ctx.fillStyle = "black";
+    ctx.beginPath();
+    ctx.beginPath();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#663500";
+    ctx.moveTo(48, 13);
+    ctx.lineTo(56, 21);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(56, 13);
+    ctx.lineTo(48, 21);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fill();
+
+    // draw fill
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.fillRect(52, 14, 14, 14);
+    ctx.strokeRect(52, 14, 14, 14);
+
+    ctx.fillStyle = "black";
+    ctx.beginPath();
+    ctx.roundRect(54, 16, 10, 10, 2);
+    ctx.fill();
   }
 }
 
