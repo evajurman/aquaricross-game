@@ -16,7 +16,7 @@ export function getFrame(): number {
 let delay = 0;
 export function delayAction(
   callback: (state: Window & typeof globalThis) => void,
-  delayLength = 10,
+  delayLength = 6,
 ) {
   if (delay === 0 || !(delay + delayLength > window.frameNumber)) {
     callback(window);

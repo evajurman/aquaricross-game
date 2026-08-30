@@ -2,6 +2,7 @@ import { loadFonts } from "./loadFonts";
 import { resizeCanvas } from "./resizeCanvas";
 import { drawBackground } from "./background";
 import { drawSprites } from "./sprites";
+import { mousePos } from "./mouse";
 
 let frameNumber = 0;
 
@@ -105,6 +106,8 @@ async function start() {
 }
 
 document.addEventListener("keydown", (event) => {
+  mousePos.x = 260;
+  mousePos.y = 180;
   for (let inputKey of Object.keys(window.keySettings) as (keyof GameInput)[]) {
     if (window.keySettings[inputKey] === event.key) {
       window.input.p1[inputKey] = true;

@@ -7,12 +7,24 @@ export const boardOffsetY = 46;
 export const cellSize = 10;
 export const cellOffset = 1;
 const cellSquare = cellSize + cellOffset;
+// drawing cells set to how many frames to animate, 0 is finished
+export const drawingCells: Record<string, number> = {};
+
+for (let i = 0; i < 10; i++) {
+  for (let j = 0; j < 10; j++) {
+    drawingCells[`${i}_${j}`] = 0;
+  }
+}
 
 export function drawBoard(ctx: CTX) {
   ctx.fillStyle = "white";
 
   ctx.strokeStyle = "black";
   ctx.lineWidth = 0.2;
+
+  for (let key in drawingCells) {
+    drawingCells[key] = Math.max(0, drawingCells[key] - 1);
+  }
 
   for (let i = 0; i < 10; i++) {
     for (let j = 0; j < 10; j++) {
@@ -205,12 +217,13 @@ export function drawFills(ctx: CTX) {
 
   for (let i = 0; i < window.gameStateBoard.fills.length; i++) {
     const square = window.gameStateBoard.fills[i];
+    const anim = drawingCells[`${square[0]}_${square[1]}`] / 10;
     ctx.beginPath();
     ctx.roundRect(
-      boardOffsetX + square[0] * cellSquare + 1,
-      boardOffsetY + square[1] * cellSquare + 1,
-      cellSize - 2,
-      cellSize - 2,
+      boardOffsetX + square[0] * cellSquare + 1 + 2 * anim,
+      boardOffsetY + square[1] * cellSquare + 1 + 2 * anim,
+      cellSize - 2 - 4 * anim,
+      cellSize - 2 - 4 * anim,
       2,
     );
     ctx.fill();
@@ -221,6 +234,9 @@ export function drawFills(ctx: CTX) {
 export function drawCrosses(ctx: CTX) {
   for (let i = 0; i < window.gameStateBoard.crosses.length; i++) {
     const square = window.gameStateBoard.crosses[i];
+    const anim = drawingCells[`${square[0]}_${square[1]}`] / 5;
+    const anim1 = Math.max(0, anim * 2);
+    const anim2 = Math.max(Math.min(anim - 0.5, 1), 0);
     ctx.beginPath();
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = "#663500";
@@ -230,8 +246,8 @@ export function drawCrosses(ctx: CTX) {
     );
 
     ctx.lineTo(
-      boardOffsetX + square[0] * cellSquare + 7,
-      boardOffsetY + square[1] * cellSquare + 7,
+      boardOffsetX + square[0] * cellSquare + 7 - 2 * anim1,
+      boardOffsetY + square[1] * cellSquare + 7 - 2 * anim1,
     );
     ctx.closePath();
     ctx.stroke();
@@ -242,8 +258,8 @@ export function drawCrosses(ctx: CTX) {
     );
 
     ctx.lineTo(
-      boardOffsetX + square[0] * cellSquare + 3,
-      boardOffsetY + square[1] * cellSquare + 7,
+      boardOffsetX + (square[0] * cellSquare + 3) + 4 * anim2,
+      boardOffsetY + (square[1] * cellSquare + 7) - 4 * anim2,
     );
     ctx.closePath();
     ctx.stroke();

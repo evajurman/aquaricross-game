@@ -1,4 +1,10 @@
-import { boardOffsetX, boardOffsetY, cellOffset, cellSize } from "./board";
+import {
+  boardOffsetX,
+  boardOffsetY,
+  cellOffset,
+  cellSize,
+  drawingCells,
+} from "./board";
 import { mousePos } from "./mouse";
 import {
   delayAction,
@@ -228,7 +234,10 @@ export function updateBoard() {
     window.input.p1.buttonFillSquare &&
     !window.input.p1Previous.buttonFillSquare;
 
-  if (justPressedFilledButton && paintMode === null) {
+  const timeElapsed =
+    new Date().getTime() - window.gameStateBoard.startTime.getTime();
+
+  if (justPressedFilledButton && paintMode === null && timeElapsed < 120) {
     paintMode = "erase"; // do not fill in the moment you go into the next screen
   } else if (justPressedFilledButton) {
     if (
@@ -248,13 +257,13 @@ export function updateBoard() {
       );
     }
     if (paintMode === "fill") {
-      window.gameStateBoard.fills.push([...window.gameStateBoard.selection]);
-      if (
-        hasTuple(window.gameStateBoard.crosses, window.gameStateBoard.selection)
-      ) {
+      const selection = window.gameStateBoard.selection;
+      window.gameStateBoard.fills.push([...selection]);
+      drawingCells[`${selection[0]}_${selection[1]}`] = 10;
+      if (hasTuple(window.gameStateBoard.crosses, selection)) {
         window.gameStateBoard.crosses = removeTuple(
           window.gameStateBoard.crosses,
-          window.gameStateBoard.selection,
+          selection,
         );
       }
     }
@@ -284,13 +293,13 @@ export function updateBoard() {
       );
     }
     if (paintMode === "cross") {
-      window.gameStateBoard.crosses.push([...window.gameStateBoard.selection]);
-      if (
-        hasTuple(window.gameStateBoard.fills, window.gameStateBoard.selection)
-      ) {
+      const selection = window.gameStateBoard.selection;
+      window.gameStateBoard.crosses.push([...selection]);
+      drawingCells[`${selection[0]}_${selection[1]}`] = 10;
+      if (hasTuple(window.gameStateBoard.fills, selection)) {
         window.gameStateBoard.fills = removeTuple(
           window.gameStateBoard.fills,
-          window.gameStateBoard.selection,
+          selection,
         );
       }
     }

@@ -2,7 +2,6 @@ import { getCanvas, getCtx } from "./utils";
 
 export const mousePos = { x: 0, y: 0 };
 const canvas = getCanvas();
-const ctx = getCtx();
 export function drawMouse(ctx: CTX) {
   ctx.strokeStyle = "orange";
   ctx.fillStyle = "yellow";
@@ -31,23 +30,23 @@ document.addEventListener("mousemove", (event) => {
 
 document.addEventListener("mousedown", (event) => {
   event.preventDefault();
-  window.input.p1.buttonSelect = true;
   if (window.gameState.screen === "Board" && event.button === 0) {
     window.input.p1.buttonFillSquare = true;
   }
   if (window.gameState.screen === "Board" && event.button === 2) {
     window.input.p1.buttonCrossSquare = true;
   }
+  window.input.p1.buttonSelect = true;
 });
 document.addEventListener("mouseup", (event) => {
   event.preventDefault();
-  window.input.p1.buttonSelect = false;
   if (window.gameState.screen === "Board" && event.button === 0) {
     window.input.p1.buttonFillSquare = false;
   }
   if (window.gameState.screen === "Board" && event.button === 2) {
     window.input.p1.buttonCrossSquare = false;
   }
+  window.input.p1.buttonSelect = false;
 });
 
 document.addEventListener("contextmenu", (event) => {
