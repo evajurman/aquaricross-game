@@ -1,7 +1,7 @@
 import { drawLetter } from "./drawLetter";
 import { testFills } from "./hint";
 import { pointerMode } from "./mouse";
-import { getHHMMSSDifference, hasTuple } from "./utils";
+import { getFrame, getHHMMSSDifference, hasTuple } from "./utils";
 
 export const boardOffsetX = 86;
 export const boardOffsetY = 46;
@@ -173,7 +173,7 @@ export function drawBoard(ctx: CTX) {
   for (let i = 0; i < time.length; i++) {
     drawLetter({
       ctx,
-      letter: `${time[i]}`,
+      string: `${time[i]}`,
       pos: {
         x: boardOffsetX - 42 + i * 8,
         y: boardOffsetY - 4,
@@ -192,7 +192,7 @@ export function drawBoard(ctx: CTX) {
   if (window.gameStateBoard.mode === "Aquarium") {
     drawLetter({
       ctx,
-      letter: "AQUARIUM",
+      string: "AQUARIUM",
       pos: { x: 52, y: 32 },
       fontSize: 32,
       withStroke: true,
@@ -203,7 +203,7 @@ export function drawBoard(ctx: CTX) {
   if (window.gameStateBoard.mode === "Nonogram") {
     drawLetter({
       ctx,
-      letter: "NONOGRAM",
+      string: "NONOGRAM",
       pos: { x: 36, y: 32 },
       fontSize: 32,
       withStroke: true,
@@ -290,7 +290,7 @@ export function drawPointerMode(ctx: CTX) {
 
 export function drawFills(ctx: CTX) {
   ctx.fillStyle =
-    window.gameStateBoard.mode === "Nonogram" ? "black" : "#4d56ff";
+    window.gameStateBoard.mode === "Nonogram" ? "black" : "#b48700";
 
   for (let i = 0; i < window.gameStateBoard.fills.length; i++) {
     const square = window.gameStateBoard.fills[i];
@@ -388,13 +388,13 @@ export function drawAquariumHints(ctx: CTX) {
     if (fillCount === clueCount) {
       ctx.fillStyle = "gray";
     } else if (fillCount > clueCount || crossCount > 10 - clueCount) {
-      ctx.fillStyle = "red";
+      ctx.fillStyle = "green";
     } else {
       ctx.fillStyle = "black";
     }
     drawLetter({
       ctx,
-      letter: `${clueCount}`,
+      string: `${clueCount}`,
       pos: {
         x: boardOffsetX + i * cellSquare + (isTen ? 0 : 3),
         y: boardOffsetY - 3,
@@ -415,13 +415,13 @@ export function drawAquariumHints(ctx: CTX) {
     if (fillCount === clueCount) {
       ctx.fillStyle = "gray";
     } else if (fillCount > clueCount || crossCount > 10 - clueCount) {
-      ctx.fillStyle = "red";
+      ctx.fillStyle = "green";
     } else {
       ctx.fillStyle = "black";
     }
     drawLetter({
       ctx,
-      letter: `${clueCount}`,
+      string: `${clueCount}`,
       pos: {
         x: boardOffsetX - cellSquare + (clueCount === 10 ? -3 : 2),
         y: boardOffsetY + i * cellSquare + 8,
@@ -447,6 +447,15 @@ export function drawNonogramHints(ctx: CTX) {
     cellSquare * 10 + 1,
     (cellSquare * 6) / 2 + 8,
   );
+  const selection = window.gameStateBoard.selection;
+  ctx.fillStyle = "#ca9b50";
+  ctx.fillRect(
+    boardOffsetX + selection[0] * (cellSize + cellOffset),
+    boardOffsetY - (6 * cellSquare) / 2 - 8,
+    cellSize + cellOffset,
+    (cellSquare * 6) / 2 + 6,
+  );
+  ctx.fillStyle = "white";
   // side hints
   ctx.fillRect(
     boardOffsetX - (8 * cellSquare) / 2,
@@ -460,6 +469,14 @@ export function drawNonogramHints(ctx: CTX) {
     (cellSquare * 8) / 2,
     cellSquare * 10 + 1,
   );
+  ctx.fillStyle = "#ca9b50";
+  ctx.fillRect(
+    boardOffsetX - (8 * cellSquare) / 2,
+    boardOffsetY + selection[1] * (cellSize + cellOffset),
+    (cellSquare * 8) / 2 - 2,
+    cellSquare,
+  );
+  ctx.fillStyle = "white";
 
   // draw hints for cols
   ctx.fillStyle = "black";
@@ -517,7 +534,7 @@ export function drawNonogramHints(ctx: CTX) {
       }
       drawLetter({
         ctx,
-        letter: `${clue}`,
+        string: `${clue}`,
         pos: {
           x: boardOffsetX + i * cellSquare + (isTen ? 0 : 3),
           y: boardOffsetY - j * (cellSquare / 1.2) - 3,
@@ -575,7 +592,7 @@ export function drawNonogramHints(ctx: CTX) {
       }
       drawLetter({
         ctx,
-        letter: `${clue}`,
+        string: `${clue}`,
         pos: {
           x: boardOffsetX - j * (cellSquare / 1.2) - (isTen ? 14 : 9),
           y: boardOffsetY + i * cellSquare + 8,

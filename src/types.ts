@@ -22,6 +22,7 @@ type GameStateBoard = {
   crosses: [number, number][];
   solution: [number, number][];
   tanks: [number, number][][];
+  switchFrame: number;
 };
 
 type GameInput = {

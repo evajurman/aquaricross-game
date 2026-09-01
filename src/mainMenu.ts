@@ -8,30 +8,35 @@ export const mainMenuButtons = {
 };
 
 export function drawMainMenu(ctx: CTX) {
+  const selection = window.gameStateMenu.selection;
   ctx.fillStyle = "white";
   ctx.strokeStyle = "black";
   ctx.lineWidth = 5;
-  const letter = "Aquaricross!!".slice(0, (getFrame() * getFrame()) / 900);
 
   drawLetter({
     ctx,
-    letter,
+    string: "Aquaricross!!",
     pos: { x: 14, y: 42 },
     fontSize: 32,
     withStroke: true,
     bobble: true,
+    deltaY: -10,
+    animateIn: selection ? 0 : 10,
   });
 
   ctx.fillStyle = "black";
   ctx.strokeStyle = "";
-  mainMenuButtons.play = drawButton({
-    selected: window.gameStateMenu.selection === "Play",
-    text: "Play",
-    pos: { x: 60, y: 100 },
-  });
-  mainMenuButtons.settings = drawButton({
-    selected: window.gameStateMenu.selection === "Settings",
-    text: "Settings",
-    pos: { x: 60, y: 128 },
-  });
+  let animationEnd = ("Aquaricross!!".length + 1) * 9;
+  if (getFrame() > animationEnd || selection) {
+    mainMenuButtons.play = drawButton({
+      selected: selection === "Play",
+      text: "Play",
+      pos: { x: 60, y: 100 },
+    });
+    mainMenuButtons.settings = drawButton({
+      selected: selection === "Settings",
+      text: "Settings",
+      pos: { x: 60, y: 128 },
+    });
+  }
 }

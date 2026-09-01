@@ -1,5 +1,5 @@
 import { boardOffsetX, boardOffsetY, cellOffset, cellSize } from "./board";
-import { getCanvas, getCtx } from "./utils";
+import { delayAction, getCanvas, getCtx } from "./utils";
 
 export const mousePos = { x: 200, y: 200 };
 const canvas = getCanvas();
@@ -13,8 +13,8 @@ function updatePos(event: PointerEvent) {
 }
 
 export function drawMouse(ctx: CTX) {
-  ctx.strokeStyle = "orange";
-  ctx.fillStyle = "yellow";
+  ctx.strokeStyle = "#9f2f1e";
+  ctx.fillStyle = "#ffc800";
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(mousePos.x, mousePos.y);
@@ -71,6 +71,11 @@ document.addEventListener("pointerdown", (event) => {
   if (window.gameState.screen === "Board" && isInPointerModeSection) {
     pointerMode = pointerMode === "fill" ? "cross" : "fill";
   }
+  const isInBoardTypeSection =
+    mousePos.x > 200 && mousePos.y > 7 && mousePos.x < 230 && mousePos.y < 156;
+  if (isInBoardTypeSection) {
+    window.input.p1.buttonShiftBoard = true;
+  }
   window.input.p1.buttonSelect = true;
 });
 document.addEventListener("pointerup", (event) => {
@@ -91,6 +96,11 @@ document.addEventListener("pointerup", (event) => {
     if (pointerMode === "cross") {
       window.input.p1.buttonFillSquare = false;
     }
+  }
+  const isInBoardTypeSection =
+    mousePos.x > 200 && mousePos.y > 7 && mousePos.x < 230 && mousePos.y < 156;
+  if (isInBoardTypeSection) {
+    window.input.p1.buttonShiftBoard = false;
   }
   window.input.p1.buttonSelect = false;
 });

@@ -2,7 +2,7 @@ import { getFrame } from "./utils";
 
 export function drawLetter({
   ctx,
-  letter,
+  string,
   pos,
   fontFamily = "LuckiestGuy",
   fontSize,
@@ -10,9 +10,12 @@ export function drawLetter({
   noFill = false,
   bobble = false,
   vertical = false,
+  deltaX = 0,
+  deltaY = 0,
+  animateIn = 0,
 }: {
   ctx: CanvasRenderingContext2D;
-  letter: string;
+  string: string;
   pos: Position;
   fontFamily?: string;
   fontSize: number;
@@ -20,38 +23,46 @@ export function drawLetter({
   noFill?: boolean;
   bobble?: boolean;
   vertical?: boolean;
+  deltaX?: number;
+  deltaY?: number;
+  animateIn?: number;
 }) {
   ctx.font = `${fontSize}px ${fontFamily}`;
   if (bobble) {
-    let currentX = pos.x + ctx.measureText(letter).width;
+    let currentX = pos.x + ctx.measureText(string).width;
     let frame = getFrame();
-    for (let char = letter.length - 1; char >= 0; char--) {
-      const letterWidth = vertical ? 0 : ctx.measureText(letter[char]).width;
+    for (let char = string.length - 1; char >= 0; char--) {
+      const frameDelta = (getFrame() * getFrame()) / 100;
+
+      const modX = Math.max(0, (char + 1) * animateIn - frameDelta) * deltaX;
+      const modY = Math.max(0, (char + 1) * animateIn - frameDelta) * deltaY;
+      console.log();
+      const stringWidth = vertical ? 0 : ctx.measureText(string[char]).width;
       const centerX = currentX;
       ctx.save();
       ctx.translate(
-        centerX - letterWidth / 2,
-        vertical ? fontSize * char * 0.55 + pos.y : pos.y + 0,
+        centerX - stringWidth / 2 + modX,
+        vertical ? fontSize * char * 0.55 + pos.y + modY : pos.y + modY,
       );
 
       const angle =
         Math.cos(Math.sin(((frame + char * 8) / 60) * (Math.PI / 4))) - 0.75;
       ctx.rotate(angle);
       if (withStroke) {
-        ctx.strokeText(letter[char], -letterWidth / 2, 0);
+        ctx.strokeText(string[char], -stringWidth / 2, 0);
       }
       if (!noFill) {
-        ctx.fillText(letter[char], -letterWidth / 2, 0);
+        ctx.fillText(string[char], -stringWidth / 2, 0);
       }
       ctx.restore();
-      currentX -= letterWidth;
+      currentX -= stringWidth;
     }
   } else {
     if (withStroke) {
-      ctx.strokeText(letter, pos.x, pos.y);
+      ctx.strokeText(string, pos.x, pos.y);
     }
     if (!noFill) {
-      ctx.fillText(letter, pos.x, pos.y);
+      ctx.fillText(string, pos.x, pos.y);
     }
   }
 }

@@ -24,7 +24,7 @@ export function drawButton({
   ctx.fillStyle = selected ? "white" : "black";
   drawLetter({
     ctx,
-    letter: text,
+    string: text,
     pos,
     fontSize,
     bobble: selected,

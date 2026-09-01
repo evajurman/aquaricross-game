@@ -75,16 +75,16 @@
   var canvas = getCanvas();
   var ctx = getCtx();
   function resizeCanvas() {
-    const scale = Math.min(
+    const rawScale = Math.min(
       window.innerWidth / GBA_WIDTH,
       window.innerHeight / GBA_HEIGHT
     );
-    const cssWidth = GBA_WIDTH * scale;
-    const cssHeight = GBA_HEIGHT * scale;
-    canvas.style.width = `${cssWidth}px`;
-    canvas.style.height = `${cssHeight}px`;
+    const scale = Math.max(1, Math.floor(rawScale));
+    canvas.style.width = `${GBA_WIDTH * scale}px`;
+    canvas.style.height = `${GBA_HEIGHT * scale}px`;
     canvas.width = GBA_WIDTH;
     canvas.height = GBA_HEIGHT;
+    canvas.style.imageRendering = "pixelated";
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.imageSmoothingEnabled = false;
   }
@@ -118,44 +118,51 @@
   // src/drawLetter.ts
   function drawLetter({
     ctx: ctx5,
-    letter,
+    string,
     pos,
     fontFamily = "LuckiestGuy",
     fontSize,
     withStroke = false,
     noFill = false,
     bobble = false,
-    vertical = false
+    vertical = false,
+    deltaX = 0,
+    deltaY = 0,
+    animateIn = 0
   }) {
     ctx5.font = `${fontSize}px ${fontFamily}`;
     if (bobble) {
-      let currentX = pos.x + ctx5.measureText(letter).width;
+      let currentX = pos.x + ctx5.measureText(string).width;
       let frame = getFrame();
-      for (let char = letter.length - 1; char >= 0; char--) {
-        const letterWidth = vertical ? 0 : ctx5.measureText(letter[char]).width;
+      for (let char = string.length - 1; char >= 0; char--) {
+        const frameDelta = getFrame() * getFrame() / 100;
+        const modX = Math.max(0, (char + 1) * animateIn - frameDelta) * deltaX;
+        const modY = Math.max(0, (char + 1) * animateIn - frameDelta) * deltaY;
+        console.log();
+        const stringWidth = vertical ? 0 : ctx5.measureText(string[char]).width;
         const centerX = currentX;
         ctx5.save();
         ctx5.translate(
-          centerX - letterWidth / 2,
-          vertical ? fontSize * char * 0.55 + pos.y : pos.y + 0
+          centerX - stringWidth / 2 + modX,
+          vertical ? fontSize * char * 0.55 + pos.y + modY : pos.y + modY
         );
         const angle = Math.cos(Math.sin((frame + char * 8) / 60 * (Math.PI / 4))) - 0.75;
         ctx5.rotate(angle);
         if (withStroke) {
-          ctx5.strokeText(letter[char], -letterWidth / 2, 0);
+          ctx5.strokeText(string[char], -stringWidth / 2, 0);
         }
         if (!noFill) {
-          ctx5.fillText(letter[char], -letterWidth / 2, 0);
+          ctx5.fillText(string[char], -stringWidth / 2, 0);
         }
         ctx5.restore();
-        currentX -= letterWidth;
+        currentX -= stringWidth;
       }
     } else {
       if (withStroke) {
-        ctx5.strokeText(letter, pos.x, pos.y);
+        ctx5.strokeText(string, pos.x, pos.y);
       }
       if (!noFill) {
-        ctx5.fillText(letter, pos.x, pos.y);
+        ctx5.fillText(string, pos.x, pos.y);
       }
     }
   }
@@ -183,8 +190,8 @@
     mousePos.y = cssY * (canvas3.height / rect.height);
   }
   function drawMouse(ctx5) {
-    ctx5.strokeStyle = "orange";
-    ctx5.fillStyle = "yellow";
+    ctx5.strokeStyle = "#9f2f1e";
+    ctx5.fillStyle = "#ffc800";
     ctx5.lineWidth = 3;
     ctx5.beginPath();
     ctx5.moveTo(mousePos.x, mousePos.y);
@@ -224,6 +231,10 @@
     if (window.gameState.screen === "Board" && isInPointerModeSection) {
       pointerMode = pointerMode === "fill" ? "cross" : "fill";
     }
+    const isInBoardTypeSection = mousePos.x > 200 && mousePos.y > 7 && mousePos.x < 230 && mousePos.y < 156;
+    if (isInBoardTypeSection) {
+      window.input.p1.buttonShiftBoard = true;
+    }
     window.input.p1.buttonSelect = true;
   });
   document.addEventListener("pointerup", (event) => {
@@ -244,6 +255,10 @@
       if (pointerMode === "cross") {
         window.input.p1.buttonFillSquare = false;
       }
+    }
+    const isInBoardTypeSection = mousePos.x > 200 && mousePos.y > 7 && mousePos.x < 230 && mousePos.y < 156;
+    if (isInBoardTypeSection) {
+      window.input.p1.buttonShiftBoard = false;
     }
     window.input.p1.buttonSelect = false;
   });
@@ -394,7 +409,7 @@
     for (let i = 0; i < time.length; i++) {
       drawLetter({
         ctx: ctx5,
-        letter: `${time[i]}`,
+        string: `${time[i]}`,
         pos: {
           x: boardOffsetX - 42 + i * 8,
           y: boardOffsetY - 4
@@ -411,7 +426,7 @@
     if (window.gameStateBoard.mode === "Aquarium") {
       drawLetter({
         ctx: ctx5,
-        letter: "AQUARIUM",
+        string: "AQUARIUM",
         pos: { x: 52, y: 32 },
         fontSize: 32,
         withStroke: true,
@@ -422,7 +437,7 @@
     if (window.gameStateBoard.mode === "Nonogram") {
       drawLetter({
         ctx: ctx5,
-        letter: "NONOGRAM",
+        string: "NONOGRAM",
         pos: { x: 36, y: 32 },
         fontSize: 32,
         withStroke: true,
@@ -496,7 +511,7 @@
     }
   }
   function drawFills(ctx5) {
-    ctx5.fillStyle = window.gameStateBoard.mode === "Nonogram" ? "black" : "#4d56ff";
+    ctx5.fillStyle = window.gameStateBoard.mode === "Nonogram" ? "black" : "#b48700";
     for (let i = 0; i < window.gameStateBoard.fills.length; i++) {
       const square = window.gameStateBoard.fills[i];
       const anim = drawingCells[`${square[0]}_${square[1]}`] / 10;
@@ -587,13 +602,13 @@
       if (fillCount === clueCount) {
         ctx5.fillStyle = "gray";
       } else if (fillCount > clueCount || crossCount > 10 - clueCount) {
-        ctx5.fillStyle = "red";
+        ctx5.fillStyle = "green";
       } else {
         ctx5.fillStyle = "black";
       }
       drawLetter({
         ctx: ctx5,
-        letter: `${clueCount}`,
+        string: `${clueCount}`,
         pos: {
           x: boardOffsetX + i * cellSquare + (isTen ? 0 : 3),
           y: boardOffsetY - 3
@@ -614,13 +629,13 @@
       if (fillCount === clueCount) {
         ctx5.fillStyle = "gray";
       } else if (fillCount > clueCount || crossCount > 10 - clueCount) {
-        ctx5.fillStyle = "red";
+        ctx5.fillStyle = "green";
       } else {
         ctx5.fillStyle = "black";
       }
       drawLetter({
         ctx: ctx5,
-        letter: `${clueCount}`,
+        string: `${clueCount}`,
         pos: {
           x: boardOffsetX - cellSquare + (clueCount === 10 ? -3 : 2),
           y: boardOffsetY + i * cellSquare + 8
@@ -644,6 +659,15 @@
       cellSquare * 10 + 1,
       cellSquare * 6 / 2 + 8
     );
+    const selection = window.gameStateBoard.selection;
+    ctx5.fillStyle = "#ca9b50";
+    ctx5.fillRect(
+      boardOffsetX + selection[0] * (cellSize + cellOffset),
+      boardOffsetY - 6 * cellSquare / 2 - 8,
+      cellSize + cellOffset,
+      cellSquare * 6 / 2 + 6
+    );
+    ctx5.fillStyle = "white";
     ctx5.fillRect(
       boardOffsetX - 8 * cellSquare / 2,
       boardOffsetY - 2,
@@ -656,6 +680,14 @@
       cellSquare * 8 / 2,
       cellSquare * 10 + 1
     );
+    ctx5.fillStyle = "#ca9b50";
+    ctx5.fillRect(
+      boardOffsetX - 8 * cellSquare / 2,
+      boardOffsetY + selection[1] * (cellSize + cellOffset),
+      cellSquare * 8 / 2 - 2,
+      cellSquare
+    );
+    ctx5.fillStyle = "white";
     ctx5.fillStyle = "black";
     let currentColFills = [];
     for (let i = 0; i < 10; i++) {
@@ -704,7 +736,7 @@
         }
         drawLetter({
           ctx: ctx5,
-          letter: `${clue}`,
+          string: `${clue}`,
           pos: {
             x: boardOffsetX + i * cellSquare + (isTen ? 0 : 3),
             y: boardOffsetY - j * (cellSquare / 1.2) - 3
@@ -757,7 +789,7 @@
         }
         drawLetter({
           ctx: ctx5,
-          letter: `${clue}`,
+          string: `${clue}`,
           pos: {
             x: boardOffsetX - j * (cellSquare / 1.2) - (isTen ? 14 : 9),
             y: boardOffsetY + i * cellSquare + 8
@@ -854,8 +886,14 @@
       window.gameStateBoard.startTime = /* @__PURE__ */ new Date();
     }
     if (window.input.p1.buttonShiftBoard) {
+      window.gameStateBoard.switchFrame = getFrame();
       delayAction((state) => {
         state.gameStateBoard.mode = state.gameStateBoard.mode === "Nonogram" ? "Aquarium" : "Nonogram";
+        if (state.gameStateBoard.mode === "Aquarium") {
+          document.getElementsByTagName("html")[0].classList.add("aquarium");
+        } else {
+          document.getElementsByTagName("html")[0].classList.remove("aquarium");
+        }
       }, 24);
     }
     if (window.input.p1.buttonRight && window.input.p1.buttonUp) {
@@ -1041,7 +1079,7 @@
     ctx3.fillStyle = selected ? "white" : "black";
     drawLetter({
       ctx: ctx3,
-      letter: text,
+      string: text,
       pos,
       fontSize,
       bobble: selected
@@ -1060,30 +1098,35 @@
     settings: { x: 0, y: 0, width: 0, height: 0 }
   };
   function drawMainMenu(ctx5) {
+    const selection = window.gameStateMenu.selection;
     ctx5.fillStyle = "white";
     ctx5.strokeStyle = "black";
     ctx5.lineWidth = 5;
-    const letter = "Aquaricross!!".slice(0, getFrame() * getFrame() / 900);
     drawLetter({
       ctx: ctx5,
-      letter,
+      string: "Aquaricross!!",
       pos: { x: 14, y: 42 },
       fontSize: 32,
       withStroke: true,
-      bobble: true
+      bobble: true,
+      deltaY: -10,
+      animateIn: selection ? 0 : 10
     });
     ctx5.fillStyle = "black";
     ctx5.strokeStyle = "";
-    mainMenuButtons.play = drawButton({
-      selected: window.gameStateMenu.selection === "Play",
-      text: "Play",
-      pos: { x: 60, y: 100 }
-    });
-    mainMenuButtons.settings = drawButton({
-      selected: window.gameStateMenu.selection === "Settings",
-      text: "Settings",
-      pos: { x: 60, y: 128 }
-    });
+    let animationEnd = ("Aquaricross!!".length + 1) * 9;
+    if (getFrame() > animationEnd || selection) {
+      mainMenuButtons.play = drawButton({
+        selected: selection === "Play",
+        text: "Play",
+        pos: { x: 60, y: 100 }
+      });
+      mainMenuButtons.settings = drawButton({
+        selected: selection === "Settings",
+        text: "Settings",
+        pos: { x: 60, y: 128 }
+      });
+    }
   }
 
   // src/mainMenuLogic.ts
@@ -1156,7 +1199,7 @@
       }
       drawLetter({
         ctx: getCtx(),
-        letter: buttonsArray[i],
+        string: buttonsArray[i],
         pos: { x: 20, y: 40 + (fontSize + 1) * i },
         fontSize
       });
@@ -1172,7 +1215,7 @@
       drawLetter({
         ctx: ctx5,
         // @ts-ignore
-        letter: window.input.p1[buttons[buttonsArray[i]]],
+        string: window.input.p1[buttons[buttonsArray[i]]],
         pos: { x: 200, y: 40 + (fontSize + 1) * i },
         fontSize
       });

@@ -4,10 +4,12 @@ import {
   cellOffset,
   cellSize,
   drawingCells,
+  switchFrame,
 } from "./board";
 import { mousePos } from "./mouse";
 import {
   delayAction,
+  getFrame,
   hasTuple,
   randomIndex,
   randomItem,
@@ -118,9 +120,15 @@ export function updateBoard() {
   }
 
   if (window.input.p1.buttonShiftBoard) {
+    window.gameStateBoard.switchFrame = getFrame();
     delayAction((state) => {
       state.gameStateBoard.mode =
         state.gameStateBoard.mode === "Nonogram" ? "Aquarium" : "Nonogram";
+      if (state.gameStateBoard.mode === "Aquarium") {
+        document.getElementsByTagName("html")[0].classList.add("aquarium");
+      } else {
+        document.getElementsByTagName("html")[0].classList.remove("aquarium");
+      }
     }, 24);
   }
 

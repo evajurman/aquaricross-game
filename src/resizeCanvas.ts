@@ -7,24 +7,21 @@ const canvas = getCanvas();
 const ctx = getCtx();
 
 export function resizeCanvas(): void {
-  const scale = Math.min(
+  const rawScale = Math.min(
     window.innerWidth / GBA_WIDTH,
     window.innerHeight / GBA_HEIGHT,
   );
+  const scale = Math.max(1, Math.floor(rawScale)); // integer scale, at least 1x
 
-  const cssWidth = GBA_WIDTH * scale;
-  const cssHeight = GBA_HEIGHT * scale;
+  canvas.style.width = `${GBA_WIDTH * scale}px`;
+  canvas.style.height = `${GBA_HEIGHT * scale}px`;
 
-  canvas.style.width = `${cssWidth}px`;
-  canvas.style.height = `${cssHeight}px`;
-
-  // Backing store stays EXACTLY 240x160 — no DPR multiplier
   canvas.width = GBA_WIDTH;
   canvas.height = GBA_HEIGHT;
 
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  canvas.style.imageRendering = "pixelated";
 
-  // Turn OFF smoothing so upscaling is nearest-neighbor
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.imageSmoothingEnabled = false;
 }
 

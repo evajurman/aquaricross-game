@@ -28,7 +28,7 @@ export function drawSettings(ctx: CTX) {
     }
     drawLetter({
       ctx: getCtx(),
-      letter: buttonsArray[i],
+      string: buttonsArray[i],
       pos: { x: 20, y: 40 + (fontSize + 1) * i },
       fontSize,
     });
@@ -47,7 +47,7 @@ export function drawSettings(ctx: CTX) {
     drawLetter({
       ctx,
       // @ts-ignore
-      letter: window.input.p1[buttons[buttonsArray[i]]],
+      string: window.input.p1[buttons[buttonsArray[i]]],
       pos: { x: 200, y: 40 + (fontSize + 1) * i },
       fontSize,
     });

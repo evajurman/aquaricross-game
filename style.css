@@ -5,8 +5,15 @@
   font-style: normal;
 }
 
-html,
-body {
+html {
+  transition: all 0.3s ease-in-out;
+  filter: contrast(1.2) hue-rotate(0deg);
+  background: #cf975e;
+}
+
+html.aquarium {
+  transition: all 0.3s ease-in-out;
+  filter: contrast(1.2) hue-rotate(180deg);
   background: #cf975e;
 }
 
@@ -26,6 +33,7 @@ img {
 
 canvas {
   image-rendering: pixelated;
+  image-rendering: crisp-edges; /* fallback for some browsers */
   image-rendering: -moz-crisp-edges; /* Firefox fallback */
   cursor: none;
   touch-action: none;
